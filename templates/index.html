@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% set active_page = "index" %}
+
+<!--Title-->
+{% block title %}
+    Sien Long's Webapp Classifier
+{% endblock %}
+
+<!--Main content-->
+{% block content %}
+    <h2>Welcome to my webapp</h2>
+    <p></p>
+    <p class="lead">
+        <a href="{{url_for('login')}}" class="btn btn-lg btn-light fw-bold border-white bg-white">Click here to start</a>
+      </p>
+
+{% endblock %}

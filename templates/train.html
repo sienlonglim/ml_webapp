@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% set active_page = "train" %}
+
+<!--Title-->
+{% block title %}
+    Train
+{% endblock %}
+
+<!--Content-->
+{% block content %}
+    <h1>Follow these steps to help train the model</h1>
+    <p class="lead">
+        <a href="{{url_for('train')}}" class="btn btn-lg btn-light fw-bold border-white bg-white">Submit</a>
+      </p>
+{% endblock %}
