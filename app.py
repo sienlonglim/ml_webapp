@@ -1,8 +1,29 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 from markupsafe import escape
+import json
 
 app = Flask(__name__)
-app.secret_key = '7570fe04242b23c01ba09d1a0a7152ec59a35ef29008f54c3aa5632b8ef47fec'
+
+debug= True # Debug mode should be off if hosted on an external website
+
+def get_value_from_json(json_file, key, sub_key=None):
+   '''
+   Function to read the json file for our app secret key
+   '''
+   try:
+       with open(json_file) as f:
+           data = json.load(f)
+           if sub_key:
+               return data[key][sub_key]
+           else:
+               return data[key]
+   except Exception as e:
+       print("Error: ", e)
+
+# Getting the credentials for the session and database access
+app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY")
+config = get_value_from_json("venv/secrets.json", "mysql_connector")
+
 
 @app.route("/")
 def index():
