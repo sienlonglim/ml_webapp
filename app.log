@@ -68,3 +68,45 @@ root - ERROR - time_taken_to_station() encountered 429 Client Error: Too Many Re
 root - ERROR - time_taken_to_station() encountered 429 Client Error: Too Many Requests for url: https://developers.onemap.sg/privateapi/routingsvc/route?start=1.43514317476086,103.795210548115&end=1.42748811362716,103.792729941333&routeType=pt&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwMjIyLCJ1c2VyX2lkIjoxMDIyMiwiZW1haWwiOiJsaW1zaWVubG9uZ0BnbWFpbC5jb20iLCJmb3JldmVyIjpmYWxzZSwiaXNzIjoiaHR0cDpcL1wvb20yLmRmZS5vbmVtYXAuc2dcL2FwaVwvdjJcL3VzZXJcL3Nlc3Npb24iLCJpYXQiOjE2ODQ1NDI0NDcsImV4cCI6MTY4NDk3NDQ0NywibmJmIjoxNjg0NTQyNDQ3LCJqdGkiOiJiY2FmYmUwNjQyMDQxN2MxMWNmZWE1MDRjNzk3MzhhZiJ9.KzUcAl2DPjpdJ1Io11HNAHz_O1OCJb18cPXLbP9qWIw&date=01-26-2023&time=07:35:00&mode=TRANSIT&maxWalkDistance=1000&numItineraries=1
 root - ERROR - time_taken_to_station() encountered 429 Client Error: Too Many Requests for url: https://developers.onemap.sg/privateapi/routingsvc/route?start=1.42201523201179,103.840714295544&end=1.42944308477331,103.835005047246&routeType=pt&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwMjIyLCJ1c2VyX2lkIjoxMDIyMiwiZW1haWwiOiJsaW1zaWVubG9uZ0BnbWFpbC5jb20iLCJmb3JldmVyIjpmYWxzZSwiaXNzIjoiaHR0cDpcL1wvb20yLmRmZS5vbmVtYXAuc2dcL2FwaVwvdjJcL3VzZXJcL3Nlc3Npb24iLCJpYXQiOjE2ODQ1NDI0NDcsImV4cCI6MTY4NDk3NDQ0NywibmJmIjoxNjg0NTQyNDQ3LCJqdGkiOiJiY2FmYmUwNjQyMDQxN2MxMWNmZWE1MDRjNzk3MzhhZiJ9.KzUcAl2DPjpdJ1Io11HNAHz_O1OCJb18cPXLbP9qWIw&date=01-26-2023&time=07:35:00&mode=TRANSIT&maxWalkDistance=1000&numItineraries=1
 root - ERROR - time_taken_to_station() encountered 500 Server Error: Internal Server Error for url: https://developers.onemap.sg/privateapi/routingsvc/route?start=1.43611425409216,103.837605235958&end=1.42944308477331,103.835005047246&routeType=pt&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwMjIyLCJ1c2VyX2lkIjoxMDIyMiwiZW1haWwiOiJsaW1zaWVubG9uZ0BnbWFpbC5jb20iLCJmb3JldmVyIjpmYWxzZSwiaXNzIjoiaHR0cDpcL1wvb20yLmRmZS5vbmVtYXAuc2dcL2FwaVwvdjJcL3VzZXJcL3Nlc3Npb24iLCJpYXQiOjE2ODQ1NDI0NDcsImV4cCI6MTY4NDk3NDQ0NywibmJmIjoxNjg0NTQyNDQ3LCJqdGkiOiJiY2FmYmUwNjQyMDQxN2MxMWNmZWE1MDRjNzk3MzhhZiJ9.KzUcAl2DPjpdJ1Io11HNAHz_O1OCJb18cPXLbP9qWIw&date=01-26-2023&time=07:35:00&mode=TRANSIT&maxWalkDistance=1000&numItineraries=1
+2023-05-26 23:53:31,138 - root - WARNING - ----------------------------------------------------------------------------------------------------New run started ----------------------------------------------------------------------------------------------------
+2023-05-27 00:04:16,997 - root - ERROR - distance_to() encountered operands could not be broadcast together with shapes (2283,) (2,) 
+2023-05-27 00:05:44,631 - root - ERROR - distance_to() encountered Lengths must be equal
+2023-05-27 00:07:15,228 - root - ERROR - distance_to() encountered negative dimensions are not allowed
+2023-05-27 00:07:34,730 - root - ERROR - distance_to() encountered could not broadcast input array from shape (2,) into shape (2283,1)
+2023-05-27 00:08:08,415 - root - ERROR - distance_to() encountered could not broadcast input array from shape (2,) into shape (2283,1)
+2023-05-27 00:08:43,770 - root - ERROR - distance_to() encountered Data must be 1-dimensional, got ndarray of shape (2283, 2283) instead
+2023-05-27 00:11:45,675 - root - ERROR - distance_to() encountered could not broadcast input array from shape (2,) into shape (2283,1)
+2023-05-27 00:12:01,131 - root - ERROR - distance_to() encountered could not broadcast input array from shape (1,2) into shape (2283,1)
+2023-05-27 00:12:24,671 - root - ERROR - distance_to() encountered operands could not be broadcast together with shapes (2283,) (2,) 
+2023-05-27 00:12:43,402 - root - ERROR - distance_to() encountered Lengths must be equal
+2023-05-27 00:13:40,055 - root - ERROR - distance_to() encountered Lengths must be equal
+2023-05-27 00:13:48,679 - root - ERROR - distance_to() encountered Lengths must be equal
+2023-05-27 00:13:56,014 - root - ERROR - distance_to() encountered Lengths must be equal
+2023-05-27 00:14:40,638 - root - ERROR - distance_to() encountered Data must be 1-dimensional, got ndarray of shape (2283, 2) instead
+2023-05-27 00:15:17,266 - root - ERROR - distance_to() encountered 'list' object has no attribute 'shape'
+2023-05-27 00:15:37,639 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:15:57,681 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:18:17,816 - root - ERROR - distance_to() encountered Length of values (2) does not match length of index (2283)
+2023-05-27 00:18:32,312 - root - ERROR - distance_to() encountered Length of values (2) does not match length of index (2283)
+2023-05-27 00:19:19,909 - root - ERROR - distance_to() encountered Length of values (2) does not match length of index (2283)
+2023-05-27 00:20:29,605 - root - ERROR - distance_to() encountered 'numpy_array'
+2023-05-27 00:20:33,257 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:21:08,019 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:22:02,574 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:22:32,685 - root - ERROR - distance_to() encountered 'numpy.ndarray' object has no attribute 'subtract'
+2023-05-27 00:22:47,229 - root - ERROR - distance_to() encountered operands could not be broadcast together with shapes (2283,) (2283,2) 
+2023-05-27 00:24:17,635 - root - ERROR - distance_to() encountered operands could not be broadcast together with shapes (2283,) (2283,2) 
+2023-05-27 00:24:51,010 - root - ERROR - distance_to() encountered No axis named 1 for object type Series
+2023-05-27 00:25:38,339 - root - ERROR - distance_to() encountered name 'sum_of_distances' is not defined
+2023-05-27 00:26:32,362 - root - ERROR - distance_to() encountered name 'sum_of_distances' is not defined
+2023-05-27 00:28:17,862 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:31:29,087 - root - ERROR - distance_to() encountered distance_to.<locals>.matrix_operations() takes 0 positional arguments but 1 was given
+2023-05-27 00:32:00,571 - root - ERROR - distance_to() encountered operands could not be broadcast together with shapes (2,) (2283,) 
+2023-05-27 00:39:10,529 - root - ERROR - distance_to() encountered The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2023-05-27 00:39:34,348 - root - ERROR - distance_to() encountered The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2023-05-27 00:39:54,343 - root - ERROR - distance_to() encountered The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2023-05-27 00:40:08,174 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:40:25,249 - root - ERROR - distance_to() encountered ufunc 'subtract' did not contain a loop with signature matching types (dtype('float64'), dtype('<U16')) -> None
+2023-05-27 00:41:34,941 - root - ERROR - distance_to() encountered axis 1 is out of bounds for array of dimension 1
+2023-05-27 00:41:53,140 - root - ERROR - distance_to() encountered invalid index to scalar variable.
+2023-05-27 00:46:39,661 - root - WARNING - --------------------New run started ----------------------------------------------------------------------------------------------------
