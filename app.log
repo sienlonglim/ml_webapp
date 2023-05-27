@@ -110,3 +110,4 @@ root - ERROR - time_taken_to_station() encountered 500 Server Error: Internal Se
 2023-05-27 00:41:34,941 - root - ERROR - distance_to() encountered axis 1 is out of bounds for array of dimension 1
 2023-05-27 00:41:53,140 - root - ERROR - distance_to() encountered invalid index to scalar variable.
 2023-05-27 00:46:39,661 - root - WARNING - --------------------New run started ----------------------------------------------------------------------------------------------------
+2023-05-27 17:42:49,768 - root - WARNING - --------------------New run started ----------------------------------------------------------------------------------------------------
