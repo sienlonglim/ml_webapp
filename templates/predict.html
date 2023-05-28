@@ -9,22 +9,44 @@
 
 <!--Main content-->
 {% block content %}
-    <h3>Follow these steps to do a prediction</h3>
-    <p></p>
-    <form method="post">
+<div class="container">
+  <h3>Fill in the info to do a prediction of current resale price</h3>
+  
+  <form method="post">
+    <div class="row">
+      <div class="col-md">
         <div class="mb-3">
-            <input type="text" class="form-control" placeholder="neighbourhood" 
-            name="neighbourhood" 
-            input="{{ request.form['neighbourhood'] }}"></input>
+          <label for="text" class="form-label">Town</label>
+            <input type="text" class="form-control" placeholder="town" name="town" input="{{ request.form['town'] }}"></input>
           </div>
+      </div>
 
+      <div class="col-md">
         <div class="mb-3">
-          <label for="text" class="form-label">Price purchased</label>
-          <input type="text" class="form-control" name="price" input="{{ request.form['price'] }}"></input>
+          <label for="text" class="form-label">Floor area</label>
+          <input type="text" class="form-control" name="floor_area_sqm" input="{{ request.form['floor_area_sqm'] }}"></input>
         </div>
-        
-        <div class="lead">
-          <button type="submit" class="btn btn-lg btn-light fw-bold border-white bg-white">Submit</button>
+      </div>
+
+      <div class="col-md">
+        <div class="mb-3">
+          <label for="text" class="form-label">Remaining lease</label>
+          <input type="number" class="form-control" name="remaining_lease" input="{{ request.form['remaining_lease'] }}"></input>
         </div>
-    </form>
+      </div>
+
+      <div class="col-md">
+        <div class="mb-3">
+          <label for="text" class="form-label">Floor</label>
+          <input type="text" class="form-control" name="avg_storey" input="{{ request.form['avg_storey'] }}"></input>
+        </div>
+      </div>
+
+    </div>
+
+      <div class="lead">
+        <button type="submit" class="btn btn-lg btn-light fw-bold border-white bg-white">Submit</button>
+      </div>
+  </form>
+  </div>
 {% endblock %}
