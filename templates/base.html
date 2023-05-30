@@ -13,42 +13,34 @@
   </head>
 
 
-  <body class="h-100">
+  <body class="bg-image h-100" style="background-image: url('static/bg_image.jpeg')">
     <!--d-flex allows us to do alignment-->
 
     <!--d-flex allows the column to span across the width of w-100-->
-    <div class="d-flex w-100 h-100 p-3 mx-auto flex-column text-center text-bg-dark">
-      
+    <div class="d-flex w-100 h-100 p-3 mx-auto flex-column text-center text-white">
       <!--Navigation bar-->
       <header class="mb-auto">
         {% set navigation_bar = [
           ('/', 'index', 'Index'),
-          ('/train', 'train', 'Train'),
+          ('/dataset', 'dataset', 'Dataset'),
+          ('/model', 'model', 'Model'),
           ('/predict', 'predict', 'Predict')
         ] -%}
         {% set active_page = active_page|default('index') -%}
-        <div class="d-flex w-100 p-3 flex-column">
-          <div class="row">
-            <div class="col-sm">
-              <h3>Data Science Web App</h3>
-            </div>
-            <div class="col-sm"></div>
-            <div class="col-sm">
-              <nav class="nav nav-masthead justify-content-center">
-                {% for href, id, caption in navigation_bar %}
-                  <a {% if id == active_page %} class="nav-link fw-bold py-1 px-0 active" aria-current="page"
-                  {% else %} class="nav-link fw-bold py-1 px-0"
-                  {% endif %} 
-                  href="{{ href|e }}">{{ caption|e }}</a>
-                {% endfor %}
-              </nav>
-            </div>
-        </div>
+        <div>
+          <h3 class="float-md-start px-5 mb-0">Data Science Web App</h3>
+          <nav class="nav nav-masthead justify-content-center px-5 float-md-end">
+            {% for href, id, caption in navigation_bar %}
+              <a {% if id == active_page %} class="nav-link fw-bold py-1 px-0 active" aria-current="page"
+              {% else %} class="nav-link fw-bold py-1 px-0"
+              {% endif %} 
+              href="{{ href|e }}">{{ caption|e }}</a>
+            {% endfor %}
+          </nav>
         </div>
       </header>
-      
       <!--Flashed messages-->
-      <main class="px-3">
+      <main class="px-5">
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="alert alert-secondary" role="alert">
@@ -68,8 +60,8 @@
         <p>Made with <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a> and 
           <a href="https://palletsprojects.com/p/flask/" class="text-white">Flask</a>, by <a href="https://sienlonglim.github.io/" class="text-white">Sien Long</a>.</p>
       </footer>
-
     </div>    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
   </body>
 </html>

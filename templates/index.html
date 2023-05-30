@@ -9,9 +9,14 @@
 <!--Main content-->
 {% block content %}
     <h2>Welcome to Sien Long's Data Science Web App</h2>
-    <p>Here, you will get to experience firsthand, some of the projects I have created. Hopefully some of them will be useful to you!</p>
+    <p class="lead">This project utilises open data from <a href="https://data.gov.sg/">Data.gov.sg</a> to build several Machine Learning (ML) models that help predict HDB Resale Prices.
+        <br> Feel free to browse through the process, explore the data, or jump straight into predicting!
+        <br> Hope you enjoy going through the project and make some useful predictions!</p>
+    <h4>Click below to start</h4>
     <p class="lead">
-        <a href="{{url_for('login')}}" class="btn btn-lg btn-light fw-bold border-white bg-white">Click here to start</a>
+        <a href="{{url_for('dataset')}}" class="btn btn-lg btn-light fw-bold">Dataset</a>
+        <a href="{{url_for('model')}}" class="btn btn-lg btn-light fw-bold">Model Building</a>
+        <a href="{{url_for('predict')}}" class="btn btn-lg btn-light fw-bold">HDB Price Predictor</a>
       </p>
 
 {% endblock %}
