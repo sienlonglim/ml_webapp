@@ -62,8 +62,6 @@ def error_handler(func):
 app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY")
 config = get_value_from_json("venv/secrets.json", "mysql_connector")
 
-
-
 # Flask Routing methods
 @app.route("/")
 def index():
@@ -72,53 +70,35 @@ def index():
     '''
     return render_template('index.html')
 
-@app.route('/login', methods=('GET', 'POST'))
-def login():
-    error = None
-    if request.method == 'POST':
-        username = request.form.get('username', False)
-        password = request.form.get('password', False)
+@app.route('/dataset')
+def dataset():
+    return render_template('dataset.html')
 
-        if not password:
-            error = 'password is required!'
-        elif not username:
-            error = 'Username is required!'
-        else:
-            if username.lower() == 'natuyuki' and password == 'flask23':
-                flash('You were successfully logged in')
-                return redirect(url_for('train'))
-            else:
-                error = 'Incorrect username/password'
-        return render_template('login.html', error= error)
-    
-    elif request.method == 'GET':
-        return render_template('login.html')
+@app.route('/model')
+def model():
+    return render_template('model.html')
 
-@app.route('/<name>')
-def welcome(name):
-    return f'Welcome, {escape(name)}'
-
-@app.route('/train')
-def train():
-    return render_template('train.html')
 
 @app.route('/predict', methods=('GET', 'POST'))
 def predict():
     if request.method == 'POST':
-        pprint(request.form)
-        '''if request.form['model'] == 'rfr':
-            model = joblib.load('models/rfr.joblib')
-        elif request.form['model'] == 'gbc':
-            model = joblib.load('models/gbc_2023_01_to_04.joblib')'''
-        #df = pd.DataFrame(request.form)
-        #scaler.transform(df)
-        #print(df)
+        data = {'town': request.form['town'],
+                'floor_area_sqm': float(request.form['floor_area_sqm']),
+                'avg_storey': float(request.form['avg_storey']),
+                'rooms':float(request.form['rooms']),
+                'remaining_lease':float(request.form['remaining_lease']),
+        }
+        model = joblib.load('models/gbc_2023_01_to_04.joblib')
+        scaler = joblib.load('models/scaler.joblib')
+        mean_encoder = joblib.load('models/mean_encoder.joblib')
+        df = pd.DataFrame(data, index=[0])
+        df = scaler.transform(df)
+        df = mean_encoder.transform(df)
+        pprint(df)
         
         return render_template('predict.html')
     elif request.method == 'GET':
         return render_template('predict.html')
-
-
 
 
 
