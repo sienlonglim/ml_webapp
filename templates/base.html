@@ -13,11 +13,11 @@
   </head>
 
 
-  <body class="d-flex h-100 text-center text-bg-dark">
+  <body class="h-100">
     <!--d-flex allows us to do alignment-->
 
-    <!--cover-container is the one that declares the width-->
-    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <!--d-flex allows the column to span across the width of w-100-->
+    <div class="d-flex w-100 h-100 p-3 mx-auto flex-column text-center text-bg-dark">
       
       <!--Navigation bar-->
       <header class="mb-auto">
@@ -27,16 +27,23 @@
           ('/predict', 'predict', 'Predict')
         ] -%}
         {% set active_page = active_page|default('index') -%}
-        <div>
-          <h3 class="float-md-start mb-0">HDB Resale Prices Predictor</h3>
-          <nav class="nav nav-masthead justify-content-center float-md-end">
-            {% for href, id, caption in navigation_bar %}
-              <a {% if id == active_page %} class="nav-link fw-bold py-1 px-0 active" aria-current="page"
-              {% else %} class="nav-link fw-bold py-1 px-0"
-              {% endif %} 
-              href="{{ href|e }}">{{ caption|e }}</a>
-            {% endfor %}
-          </nav>
+        <div class="d-flex w-100 p-3 flex-column">
+          <div class="row">
+            <div class="col-sm">
+              <h3>Data Science Web App</h3>
+            </div>
+            <div class="col-sm"></div>
+            <div class="col-sm">
+              <nav class="nav nav-masthead justify-content-center">
+                {% for href, id, caption in navigation_bar %}
+                  <a {% if id == active_page %} class="nav-link fw-bold py-1 px-0 active" aria-current="page"
+                  {% else %} class="nav-link fw-bold py-1 px-0"
+                  {% endif %} 
+                  href="{{ href|e }}">{{ caption|e }}</a>
+                {% endfor %}
+              </nav>
+            </div>
+        </div>
         </div>
       </header>
       

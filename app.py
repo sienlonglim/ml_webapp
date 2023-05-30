@@ -123,5 +123,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='app.log', filemode='a', level='ERROR', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='app.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app.run(debug=debug)
