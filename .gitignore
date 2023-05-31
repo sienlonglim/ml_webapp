@@ -4,3 +4,4 @@ ignore
 .DS_Store
 app.log
 wrangling.log
+.ipynb_checkpoints
