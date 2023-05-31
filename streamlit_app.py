@@ -2,9 +2,8 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto", menu_items={
-        'Back to Web App': 'https://www.natuyuki.pythonanywhere.com',
         'Report a bug': "limsienlong@gmail.com",
-        'About me': "https://sienlonglim.github.io/"
+        'About': 'https://www.natuyuki.pythonanywhere.com'
     })
 
 # Custom functions and decorators

@@ -125,7 +125,7 @@ def predict():
     prediction=None
     if request.method == 'POST':
         data = {'floor_area_sqm': float(request.form['floor_area_sqm']),
-                'remaining_lease':float(request.form['remaining_lease']),
+                'remaining_lease':float(request.form['remaining_lease'])*12,
                 'avg_storey': float(request.form['avg_storey']),}
         
         for_mean_encoding = pd.DataFrame({'town': request.form['town'],
@@ -153,5 +153,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='app.log', filemode='a', level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app.run(debug=debug)
