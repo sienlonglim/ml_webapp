@@ -1,14 +1,11 @@
-# Machine Learning Web App
-This project utilises open data from <a href="https://data.gov.sg/">Data.gov.sg</a> to build several Machine Learning (ML) models that help predict HDB Resale Prices.
+# Machine Learning Web App :house:
+This project utilises open data from <a href="https://data.gov.sg/">Data.gov.sg</a> to build several Machine Learning (ML) models that help predict HDB Resale Prices. <a href="https://natuyuki.pythonanywhere.com/">Live project</a>
 
 The main focus of this project is to complete a full cycle of
 - Extract Transform Load (ETL)
 - ML Model building
 - Deployment
 - Live dashboarding
-
-<a href="https://natuyuki.pythonanywhere.com/">Live website</a>
-
 
 The project involves a large dataset (>40k points) involving geodata of all Singapore HDB resale prices over the years 2022 and 2023. 
 
@@ -20,3 +17,7 @@ The following steps were taken in the project: (all steps can be found in the Ju
 4. Model selection and testing Normal and Ensemble models (Gradient boosting, Random forest)
 5. Front end web application (Flask) development with Bootstrap 5
 6. Dashboarding (Streamlit)
+
+![snippet](https://github.com/sienlonglim/ml_webapp/assets/109359023/c7eea635-3944-4bc8-a361-eceea3492647)
+
+
