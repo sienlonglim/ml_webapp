@@ -3,7 +3,7 @@ import pandas as pd
 
 st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto", menu_items={
         'Report a bug': "mailto:[limsienlong@gmail.com]",
-        'About': 'https://www.natuyuki.pythonanywhere.com'
+        'About': "https://natuyuki.pythonanywhere.com/"
     })
 
 # Custom functions and decorators
