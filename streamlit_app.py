@@ -1,12 +1,20 @@
 import streamlit as st
 import pandas as pd
 
+st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto", menu_items={
+        'Back to Web App': 'https://www.natuyuki.pythonanywhere.com',
+        'Report a bug': "limsienlong@gmail.com",
+        'About me': "https://sienlonglim.github.io/"
+    })
+
 # Custom functions and decorators
 @st.cache_data
 def load_data(url):
     df = pd.read_csv(url, index_col=0)
     return df
+
 # Side bar stuff
+st.sidebar.write("Select the scope of the data to begin")
 year_select = st.sidebar.selectbox(
     'Year',
     (2023, 2022)
@@ -33,6 +41,7 @@ rows = left_column.slider("Rows to show", min_value=100, max_value=len(df), step
 display_df = right_column.selectbox('', ('Show Dataframe', 'Hide Dataframe'))
 if display_df=='Show Dataframe':
     st.write(df.head(rows))
+st.divider()
 
 # Plot section
 st.subheader("Graphing")
@@ -67,6 +76,9 @@ elif plot_type=='Line graph':
     else:
         st.line_chart(data=gb_df, y=y_axis)
 
+st.divider()
+
+# Map
 st.subheader('Map of data')
 map_data = df.loc[:,['latitude', 'longitude']]
 st.map(data=map_data, zoom=11)
