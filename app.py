@@ -125,7 +125,7 @@ def predict():
     prediction=None
     if request.method == 'POST':
         data = {'floor_area_sqm': float(request.form['floor_area_sqm']),
-                'remaining_lease':float(request.form['remaining_lease'])*12,
+                'remaining_lease':float(request.form['remaining_lease']),
                 'avg_storey': float(request.form['avg_storey']),}
         
         for_mean_encoding = pd.DataFrame({'town': request.form['town'],
@@ -144,7 +144,7 @@ def predict():
         
         df['mean_encoded'] = mean_encoder.transform(for_mean_encoding)
         df = scaler.transform(df)
-        prediction = np.round(model.predict(df)[0],0)
+        prediction = np.round(model.predict(df)[0])
         return render_template('predict.html', prediction=prediction)
     
     elif request.method == 'GET':
