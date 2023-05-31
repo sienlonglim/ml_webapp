@@ -10,6 +10,56 @@ Sien Long's Data Science Web App
 {% block content %}
     <h1>The Dataset</h1>
     <p class="lead">
-        lorem ipsum
-      </p>
+        The dataset is obtained from Data.gov.sg, using the API available. <br>
+        Explore the dataset directly on my 
+        <a class="btn btn-lg btn-light fw-bold" href="https://sienlonglim-ml-webapp-streamlit-app-ax51az.streamlit.app/" target="_blank">Streamlit App</a></p>
+        <div class="row">
+            <div class="col-lg-1"></div>
+            <div class="col-sm">
+                <p class="lead text-start">Key features of the data include</p>
+                <table class="table table-striped table-dark">
+                    <thead>
+                    <tr>
+                        <th scope="col">Feature</th>
+                        <th scope="col" class="text-start">Explanation</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row">resale_price</th>
+                        <td class="text-start">Dependent variable, the selling price of the flat  </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">region</th>
+                        <td class="text-start">Region of the flat</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">town  </th>
+                        <td class="text-start">Town district of the flat </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">rooms  </th>
+                        <td class="text-start">Number of rooms in the flat (whole numbers except for 5.5 - executive flat with an extra study/balcony) </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">avg_storey  </th>
+                        <td class="text-start">Mean value of the floor range (intervals of 3 storeys)     </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">floor_area_sqm  </th>
+                        <td class="text-start">Total floor area (in square meters) of the flat    </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">remaining_lease  </th>
+                        <td class="text-start">Remaining lease of the flat in months  </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">dist_to_station   </th>
+                        <td class="text-start">Distance in meters to the nearest MRT (Mass Rapid Transit) station      </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-lg-1"></div>
+        </div>
 {% endblock %}

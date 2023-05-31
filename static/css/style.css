@@ -13,8 +13,8 @@
 .btn-light:hover,
 .btn-light:focus{
   color: #fff;
-  background-color: #2313db;
-  border-color: #2313db;
+  background-color: rgb(59, 59, 59);
+  border-color: rgb(59, 59, 59);
 }
 
 /*
@@ -27,7 +27,7 @@ body {
 }
 
 /*
- * Header
+ * Navigation
  */
 
 .nav-masthead .nav-link {
@@ -52,10 +52,17 @@ body {
 
 
 /*
-* Manual styling
+* Background styling
 */
 .bg-image {
+  background-image: url('../bg_image.jpeg');
   background-size: cover;
-  background-position: center center;
+  background-position: center;
   background-repeat: no-repeat;
+}
+
+.text-bg-dark {
+      background-size: auto;
+      background-position: center;
+      --bs-bg-opacity: 0.4;
 }

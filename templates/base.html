@@ -13,13 +13,13 @@
   </head>
 
 
-  <body class="bg-image h-100" style="background-image: url('static/bg_image.jpeg')">
+  <body class="bg-image h-100">
     <!--d-flex allows us to do alignment-->
 
     <!--d-flex allows the column to span across the width of w-100-->
     <div class="d-flex w-100 h-100 p-3 mx-auto flex-column text-center text-white">
       <!--Navigation bar-->
-      <header class="mb-auto">
+      <header>
         {% set navigation_bar = [
           ('/', 'index', 'Index'),
           ('/dataset', 'dataset', 'Dataset'),
@@ -28,35 +28,42 @@
         ] -%}
         {% set active_page = active_page|default('index') -%}
         <div>
-          <h3 class="float-md-start px-5 mb-0">Data Science Web App</h3>
-          <nav class="nav nav-masthead justify-content-center px-5 float-md-end">
+          <h3 class="float-lg-start px-5">Data Science Web App</h3>
+          <nav class="nav nav-masthead justify-content-center px-5 float-lg-end">
             {% for href, id, caption in navigation_bar %}
               <a {% if id == active_page %} class="nav-link fw-bold py-1 px-0 active" aria-current="page"
               {% else %} class="nav-link fw-bold py-1 px-0"
               {% endif %} 
               href="{{ href|e }}">{{ caption|e }}</a>
             {% endfor %}
+            <a class="nav-link fw-bold py-1 px-0" href="https://sienlonglim.github.io/" target="_blank">About me</a>
           </nav>
         </div>
       </header>
       <!--Flashed messages-->
-      <main class="px-5">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-secondary" role="alert">
-            {% for message in messages %}
-              {{ message }}
-            {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
+      <main class="my-auto">
+        <div class="row">
+          <div class="col-lg-2"></div>
+          <div class="col-sm py-5 text-bg-dark">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="alert alert-secondary" role="alert">
+                {% for message in messages %}
+                  {{ message }}
+                {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
 
-      <!--Main content-->
-        {% block content %} {% endblock %}
+          <!--Main content-->
+            {% block content %} {% endblock %}
+          </div>
+          <div class="col-lg-2"></div>
+        </div>
       </main>
 
       <!--Footer-->
-      <footer class="mt-auto text-white-50">
+      <footer class="text-white-50">
         <p>Made with <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a> and 
           <a href="https://palletsprojects.com/p/flask/" class="text-white">Flask</a>, by <a href="https://sienlonglim.github.io/" class="text-white">Sien Long</a>.</p>
       </footer>
