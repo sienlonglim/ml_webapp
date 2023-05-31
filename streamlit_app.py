@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto", menu_items={
-        'Report a bug': "mailto:[limsienlong@gmail.com]",
-        'About': "https://natuyuki.pythonanywhere.com/"
-    })
+st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto")
 
 # Custom functions and decorators
 @st.cache_data
