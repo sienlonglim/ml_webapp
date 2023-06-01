@@ -4,7 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="HDB Resake Prices", page_icon=":house:", layout="wide", initial_sidebar_state="auto")
 
 # Custom functions and decorators
-@st.cache_data
+@st.cache
 def load_data(url):
     df = pd.read_csv(url, index_col=0)
     return df
@@ -37,7 +37,8 @@ rows = left_column.slider("Rows to show", min_value=100, max_value=len(df), step
 display_df = right_column.selectbox('', ('Show Dataframe', 'Hide Dataframe'))
 if display_df=='Show Dataframe':
     st.write(df.head(rows))
-st.divider()
+
+st.write('-'*50)
 
 # Plot section
 st.subheader("Graphing")
@@ -72,7 +73,7 @@ elif plot_type=='Line graph':
     else:
         st.line_chart(data=gb_df, y=y_axis)
 
-st.divider()
+st.write('-'*50)
 
 # Map
 st.subheader('Map of data')
