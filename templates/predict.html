@@ -27,6 +27,18 @@ Sien Long's Data Science Web App
     <div class="row">
       <div class="col-lg-2 mb-3"></div>
       <div class="col-sm mb-3">
+        <!--Flashed messages-->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="py-3 my-2 bg-dark text-white" role="alert">
+            
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
         <label for="town" class="form-label">Town</label>
           <select class="form-select" name="town" aria-label=".form-select example" required>
             {% for town in towns %}

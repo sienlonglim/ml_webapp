@@ -40,21 +40,11 @@
           </nav>
         </div>
       </header>
-      <!--Flashed messages-->
+      
       <main class="my-auto">
         <div class="row">
           <div class="col-lg-2"></div>
           <div class="col-sm py-5 text-bg-dark">
-            {% with messages = get_flashed_messages() %}
-              {% if messages %}
-                <div class="alert alert-secondary" role="alert">
-                {% for message in messages %}
-                  {{ message }}
-                {% endfor %}
-                </div>
-              {% endif %}
-            {% endwith %}
-
           <!--Main content-->
             {% block content %} {% endblock %}
           </div>

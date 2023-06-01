@@ -38,7 +38,7 @@ display_df = right_column.selectbox('', ('Show Dataframe', 'Hide Dataframe'))
 if display_df=='Show Dataframe':
     st.write(df.head(rows))
 
-st.write('-'*50)
+st.write('---')
 
 # Plot section
 st.subheader("Graphing")
@@ -73,7 +73,7 @@ elif plot_type=='Line graph':
     else:
         st.line_chart(data=gb_df, y=y_axis)
 
-st.write('-'*50)
+st.write('---')
 
 # Map
 st.subheader('Map of data')

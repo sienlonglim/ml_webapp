@@ -37,12 +37,10 @@ def timeit(func):
     '''
     @wraps(func)
     def timeit_wrapper(*args, **kwargs):
-        current_time = time.strftime("%H:%M:%S", time.localtime())
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
         time_taken = end-start
-        print(f'{func.__name__}() called at \t{current_time} \texecution time: {time_taken:.4f} seconds')
         logging.info(f'{func.__name__}() called at \texecution time: {time_taken:.4f} seconds')
         return result
     return timeit_wrapper
@@ -56,12 +54,12 @@ def error_handler(func):
         try:
             result = func(*args, **kwargs)
         except Exception as err:
-            print(f'{func.__name__}() encountered {err}')
             logging.error(f'{func.__name__}() encountered {err}') 
         else:
             return result
     return error_handler_wrapper
 
+@timeit
 def distance_to(from_address : str, to_address : str, verbose : int=0):
     '''
     Function to determine distance to a location
@@ -100,8 +98,8 @@ def distance_to(from_address : str, to_address : str, verbose : int=0):
     return np.round(geodesic_dist,2)
 
 # Getting the credentials for the session and database access
+# Modify route according to directory
 app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY")
-config = get_value_from_json("venv/secrets.json", "mysql_connector")
 
 # Flask Routing methods
 @app.route("/")
@@ -119,7 +117,6 @@ def dataset():
 def model():
     return render_template('model.html')
 
-
 @app.route('/predict', methods=('GET', 'POST'))
 def predict():
     prediction=None
@@ -132,26 +129,40 @@ def predict():
                                           'rooms':float(request.form['rooms'])},
                                           index=[0])
 
+        # Load the model, scaler and encoders
+        # Modify route according to directory
         model = joblib.load('models/gbc_2023_01_to_04.joblib')
         scaler = joblib.load('models/scaler.joblib')
         mean_encoder = joblib.load('models/mean_encoder.joblib')
         df = pd.DataFrame(data, index=[0])
+
+        # Calculate distance to marina bay through OneMap API call
         try:
             df['dist_to_marina_bay'] = distance_to(request.form['address'], 'Marina Bay', verbose=0)
-        except ValueError as error:
-            flash(error)
+        except Exception as error:
+            logging.error(error) 
+            flash('Unable to get location of address given, please try again.')
             return render_template('predict.html') 
         
+        # Mean encoding
         df['mean_encoded'] = mean_encoder.transform(for_mean_encoding)
         df = scaler.transform(df)
-        prediction = np.round(model.predict(df)[0])
+
+        # Prediction
+        try:
+            prediction = np.round(model.predict(df)[0])
+        except ValueError as error:
+            logging.error(error) 
+            flash('No such type of flat found in Town specified, please try again.')
+            return render_template('predict.html') 
+
         return render_template('predict.html', prediction=prediction)
     
     elif request.method == 'GET':
         return render_template('predict.html', prediction=prediction)
 
 
-
+# Main()
 if __name__ == "__main__":
-    logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='app.log', filemode='a', level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app.run(debug=debug)
