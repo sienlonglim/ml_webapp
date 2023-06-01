@@ -97,8 +97,7 @@ def distance_to(from_address : str, to_address : str, verbose : int=0):
     return np.round(geodesic_dist,2)
 
 # Getting the credentials for the session and database access
-# Modify route according to directory
-app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY")
+app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY") # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
 # Flask Routing methods
 @app.route("/")
@@ -129,13 +128,13 @@ def predict():
                                           index=[0])
 
         # Load the model, scaler and encoders
-        # Modify route according to directory
-        model = joblib.load('models/gbc_2023_01_to_04.joblib')
-        scaler = joblib.load('models/scaler.joblib')
+        model = joblib.load('models/gbc_2023_01_to_04.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        scaler = joblib.load('models/scaler.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
         mean_encoder = MeanEncoder()
-        mean_encoder.set_from_json('static/encoding_dict.json')
+        mean_encoder.set_from_json('static/encoding_dict.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
         df = pd.DataFrame(data, index=[0])
 
@@ -153,7 +152,7 @@ def predict():
 
         # Prediction
         try:
-            prediction = np.round(model.predict(df)[0])
+            prediction = int(model.predict(df)[0])
         except ValueError as error:
             logging.error(error) 
             flash('No such type of flat found in Town specified, please try again.')
