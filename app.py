@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request, url_for, flash, redirect
-from markupsafe import escape
+from flask import Flask, render_template, request, flash
 from pprint import pprint
 from functools import wraps
 from static.MeanEncoder import MeanEncoder
@@ -133,7 +132,11 @@ def predict():
         # Modify route according to directory
         model = joblib.load('models/gbc_2023_01_to_04.joblib')
         scaler = joblib.load('models/scaler.joblib')
-        mean_encoder = joblib.load('models/mean_encoder.joblib')
+        # mean_encoder = joblib.load('models/mean_encoder.joblib')
+        # Alternative to pickling my own Class, set the encoder using a json
+        mean_encoder = MeanEncoder()
+        mean_encoder.set_from_json('static/encoding_dict.json')
+
         df = pd.DataFrame(data, index=[0])
 
         # Calculate distance to marina bay through OneMap API call

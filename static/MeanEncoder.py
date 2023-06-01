@@ -46,3 +46,29 @@ class MeanEncoder():
         row_tuple.name = f'{self.measure_}_encoded'
         output =  row_tuple.map(self.encoder_dict_)
         return output
+    
+    def set_from_json(self, filepath):
+        '''
+        Manually set an encoding dictionary
+        '''
+        import json
+        with open(filepath) as f:
+            data = json.load(f)
+            self.encoder_dict_ = data['encoder_dict']
+            # Note eval() is used to read the str to get back the tuple
+            self.encoder_dict_ = eval(self.encoder_dict_)
+            self.columns_ = data['columns']
+            self.target_column_ = data['target_column']
+
+    def export_to_json(self, filepath):
+        '''
+        Export the underlying variables to a json file
+            The dictionary with tuples is written as a str first, to be read later using eval()
+        Returns a json file to the specified filepath
+        '''
+        import json
+        export_dict = {'encoder_dict': str(self.encoder_dict_),
+                        'columns': self.columns_,
+                        'target_column': self.target_column_}
+        with open(filepath, 'w')as f:
+            json.dump(export_dict, f, indent=4)
