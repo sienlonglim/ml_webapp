@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, flash
-from pprint import pprint
 from functools import wraps
-from static.MeanEncoder import MeanEncoder
+from models.MeanEncoder import MeanEncoder
 from geopy.distance import geodesic as GD
 import pandas as pd
 import numpy as np
@@ -115,7 +114,9 @@ def dataset():
 def model():
     return render_template('model.html')
 
+
 @app.route('/predict', methods=('GET', 'POST'))
+@timeit
 def predict():
     prediction=None
     if request.method == 'POST':
@@ -148,16 +149,20 @@ def predict():
         
         # Mean encoding
         df['mean_encoded'] = mean_encoder.transform(for_mean_encoding)
+        logging.info(f'Prediction for\n{df}')
         df = scaler.transform(df)
 
         # Prediction
         try:
             prediction = int(model.predict(df)[0])
+            logging.info(prediction)
         except ValueError as error:
             logging.error(error) 
             flash('No such type of flat found in Town specified, please try again.')
             return render_template('predict.html') 
 
+        
+        
         return render_template('predict.html', prediction=prediction)
     
     elif request.method == 'GET':
@@ -166,5 +171,5 @@ def predict():
 
 # Main()
 if __name__ == "__main__":
-    logging.basicConfig(filename='app.log', filemode='a', level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app.run(debug=debug)
