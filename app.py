@@ -96,7 +96,7 @@ def distance_to(from_address : str, to_address : str, verbose : int=0):
     return np.round(geodesic_dist,2)
 
 # Getting the credentials for the session and database access
-app.secret_key = get_value_from_json("venv/secrets.json", "flask", "SECRET_KEY") # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+app.secret_key = get_value_from_json(".venv/secrets.json", "flask", "SECRET_KEY") # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
 # Flask Routing methods
 @app.route("/")
