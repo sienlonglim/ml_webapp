@@ -129,8 +129,8 @@ def predict():
                                           index=[0])
 
         # Load the model, scaler and encoders
-        model = joblib.load('models/gbc_2023_01_to_04.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-        scaler = joblib.load('models/scaler.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        model = joblib.load('models/gbc_2023_06.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        scaler = joblib.load('models/scaler_2023_06.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
