@@ -5,3 +5,4 @@ ignore
 app.log
 wrangling.log
 .ipynb_checkpoints
+.venv3.9
