@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, flash
 from functools import wraps
 from models.MeanEncoder import MeanEncoder
 from geopy.distance import geodesic as GD
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import joblib
@@ -129,13 +130,17 @@ def predict():
                                           index=[0])
 
         # Load the model, scaler and encoders
-        model = joblib.load('models/gbc_2023_06.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-        scaler = joblib.load('models/scaler_2023_06.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        timestamp = datetime.now()
+        year = str(timestamp.year)
+        month = str(timestamp.month)
+        model_version = year + '_' + month
 
+        model = joblib.load(f'models/gbc_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        scaler = joblib.load(f'models/scaler_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
         mean_encoder = MeanEncoder()
-        mean_encoder.set_from_json('static/encoding_dict_2023_06.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        mean_encoder.set_from_json(f'models/encoding_dict_{model_version}.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
         df = pd.DataFrame(data, index=[0])
 
