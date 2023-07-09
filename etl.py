@@ -11,12 +11,6 @@ from pprint import pprint
 from functools import wraps
 from geopy.distance import geodesic as GD
 
-logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logging.warning(f"{'-'*20}New run started {'-'*100}")
-
-# Enable caching
-session = requests_cache.CachedSession('hdb_project_cache')
-
 # Wrapper for timing function calls:
 def timeit(func):
     '''
@@ -508,6 +502,12 @@ def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array=mr
     return nearest_stations
 
 if __name__ ==  '__main__':
+    logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.warning(f"{'-'*20}New run started {'-'*100}")
+
+    # Enable caching
+    session = requests_cache.CachedSession('hdb_project_cache')
+
     timestamp = datetime.now()
     year = timestamp.year
     df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
