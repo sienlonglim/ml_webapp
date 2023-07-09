@@ -16,7 +16,7 @@ The following steps were taken in the project: (all steps can be found in the Ju
 3. Hyperparameter tuning (Random Cross Validation)
 4. Model selection and testing Normal and Ensemble models (Gradient boosting, Random forest)
 5. Front end web application (Flask) development with Bootstrap 5
-6. Dashboarding (Streamlit)
+6. Dashboarding (Tableau & Streamlit)
 
 ![snippet](https://github.com/sienlonglim/ml_webapp/assets/109359023/c7eea635-3944-4bc8-a361-eceea3492647)
 
