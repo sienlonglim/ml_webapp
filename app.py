@@ -135,7 +135,7 @@ def predict():
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
         mean_encoder = MeanEncoder()
-        mean_encoder.set_from_json('static/encoding_dict.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        mean_encoder.set_from_json('static/encoding_dict_2023_06.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
         df = pd.DataFrame(data, index=[0])
 

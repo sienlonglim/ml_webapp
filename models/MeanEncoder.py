@@ -9,6 +9,10 @@ class MeanEncoder():
         self.columns_ = None
         self.measure_ = measure
         self.target_column_ = None
+        self.filepath = 'No filepath specified'
+    
+    def __str__(self):
+        return self.encoder_dict_
 
     def fit(self, X : pd.DataFrame, columns : list, target_column : str)->None:
         '''
@@ -59,6 +63,7 @@ class MeanEncoder():
             self.encoder_dict_ = eval(self.encoder_dict_)
             self.columns_ = data['columns']
             self.target_column_ = data['target_column']
+        return filepath
 
     def export_to_json(self, filepath):
         '''
@@ -67,8 +72,11 @@ class MeanEncoder():
         Returns a json file to the specified filepath
         '''
         import json
+        self.filepath = filepath
         export_dict = {'encoder_dict': str(self.encoder_dict_),
                         'columns': self.columns_,
                         'target_column': self.target_column_}
         with open(filepath, 'w')as f:
             json.dump(export_dict, f, indent=4)
+        return filepath
+
