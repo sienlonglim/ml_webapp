@@ -86,55 +86,58 @@ class MeanEncoder():
             json.dump(export_dict, f, indent=4)
         return filepath
 
-# Loading data
-print(f'Loading dataframe and generating features...')
-df = pd.read_csv('static/train.csv', index_col=0)
-df.dropna(inplace=True)
 
-# Feature creation and selection
-numerical_columns = df[['resale_price', 'floor_area_sqm', 'remaining_lease', 'rooms', 'avg_storey', 'dist_to_marina_bay', 'dist_to_station_0']]
-mean_encoder = MeanEncoder(measure='mean')
-mean_encoder.fit(df, columns=['town', 'rooms'], target_column='resale_price')
-town_mean_price = mean_encoder.transform(df)
-train_df = pd.concat([numerical_columns, town_mean_price], axis =1)
+if __name__ ==  '__main__':
+    # Loading data
+    print(f'Loading dataframe and generating features...')
+    df = pd.read_csv('static/train.csv', index_col=0)
+    df.dropna(inplace=True)
 
-X_unscaled = train_df[['floor_area_sqm', 'remaining_lease', 'avg_storey', 'dist_to_marina_bay', 'mean_encoded']] 
+    # Feature creation and selection
+    numerical_columns = df[['resale_price', 'floor_area_sqm', 'remaining_lease', 'rooms', 'avg_storey', 'dist_to_marina_bay', 'dist_to_station_0']]
+    mean_encoder = MeanEncoder(measure='mean')
+    mean_encoder.fit(df, columns=['town', 'rooms'], target_column='resale_price')
+    town_mean_price = mean_encoder.transform(df)
+    train_df = pd.concat([numerical_columns, town_mean_price], axis =1)
 
-scaler = MinMaxScaler()
-y = train_df.iloc[:,0]
-X = scaler.fit_transform(X_unscaled)
+    X_unscaled = train_df[['floor_area_sqm', 'remaining_lease', 'avg_storey', 'dist_to_marina_bay', 'mean_encoded']] 
 
-# Hyperparameter tuning
-print('Starting hyperparameter tuning...')
-param_distributions = {'max_depth' : [3,5],
-                       'n_estimators' : [50,100,150],
-                       'learning_rate' : [0.01,0.1,1],
-                       'max_features': [None, 'sqrt', 'log2']
-                       }
+    scaler = MinMaxScaler()
+    y = train_df.iloc[:,0]
+    X = scaler.fit_transform(X_unscaled)
 
-random_cv = RandomizedSearchCV(estimator=GradientBoostingRegressor(random_state=42),
-                               scoring= 'r2', 
-                               param_distributions= param_distributions, 
-                               n_iter= 15,
-                               cv= 5, 
-                               verbose= 1,
-                               n_jobs=2)
+    # Hyperparameter tuning
+    print('Starting hyperparameter tuning...')
+    param_distributions = {'max_depth' : [3,5],
+                        'n_estimators' : [50,100,150],
+                        'learning_rate' : [0.01,0.1,1],
+                        'max_features': [None, 'sqrt', 'log2']
+                        }
 
-random_cv.fit(X, y)
-print('Best Parameters', random_cv.best_params_)
-print('Best R2 score', np.round(random_cv.best_score_,3))
-best_gbc = random_cv.best_estimator_
+    random_cv = RandomizedSearchCV(estimator=GradientBoostingRegressor(random_state=42),
+                                scoring= 'r2', 
+                                param_distributions= param_distributions, 
+                                n_iter= 15,
+                                cv= 5, 
+                                verbose= 1,
+                                n_jobs=2)
 
-# Saving
-print('Saving...')
-timestamp = datetime.now()
-year = str(timestamp.year)
-month = str(timestamp.month)
+    random_cv.fit(X, y)
+    print('Best Parameters', random_cv.best_params_)
+    print('Best R2 score', np.round(random_cv.best_score_,3))
+    best_gbc = random_cv.best_estimator_
 
-model_version = year + '_' + month
+    # Saving
+    print('Saving...')
+    timestamp = datetime.now()
+    year = str(timestamp.year)
+    month = str(timestamp.month)
 
-print(f"Scaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
-print(f"Mean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
-print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
-print(f"ML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
-print(f'\nAll jobs completed @ {timestamp}')
+    model_version = year + '_' + month
+
+    # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+    print(f"Scaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
+    print(f"Mean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
+    print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
+    print(f"ML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
+    print(f'\nAll jobs completed @ {timestamp}')
