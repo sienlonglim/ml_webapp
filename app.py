@@ -131,18 +131,18 @@ def predict():
                                           index=[0])
 
         # Load the model, scaler and encoders
-        if use_datetime:
+        if use_curr_datetime:
             timestamp = datetime.now()
             year = str(timestamp.year)
             month = str(timestamp.month)
             model_version = year + '_' + month
             
-        model = joblib.load(f'models/gbc_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-        scaler = joblib.load(f'models/scaler_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        model = joblib.load(f'{filepath_prefix}models/gbc_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        scaler = joblib.load(f'{filepath_prefix}models/scaler_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
         mean_encoder = MeanEncoder()
-        mean_encoder.set_from_json(f'models/encoding_dict_{model_version}.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        mean_encoder.set_from_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
 
         df = pd.DataFrame(data, index=[0])
 
@@ -182,5 +182,16 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
         model_version = config['model_version']
-        use_datetime = config['use_datetime']
+        
+        # Determines whether we want to specify a particular model to use
+        use_curr_datetime = config['use_datetime']
+        if not use_curr_datetime:
+            year = config['year']
+            months = config['months'][-1]
+        
+        # Accounts for filepathing local and in pythonanywhere
+        if config['local']:
+            filepath_prefix = ''
+        else:
+            filepath_prefix = config['web_prefix']
     app.run(debug=debug)

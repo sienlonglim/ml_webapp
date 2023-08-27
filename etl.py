@@ -505,11 +505,20 @@ def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array, m
 if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
-        cache_filepath = config['cache_filepath']
-        filename= config['filename']
-        use_datetime = config['use_datetime']
-        year = config['year']
-        months = config['months']
+        
+        # Accounts for filepathing local and in pythonanywhere
+        if config['local']:
+            cache_filepath = config['local_cache_filepath']
+            output_file= config['train']
+        else:
+            cache_filepath = config['web_prefix']+'hdb_project_cache.sqlite'
+            output_file = config['web_prefix']+config['train']
+        
+        # Determines whether to take the current year, or particular year and months
+        use_curr_datetime = config['use_datetime']
+        if not use_curr_datetime:
+            year = config['year']
+            months = config['months']
     logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.warning(f"{'-'*20}New run started {'-'*100}")
 
@@ -519,7 +528,7 @@ if __name__ ==  '__main__':
     # Scraping is based on the current year
     timestamp = datetime.now()
     
-    if use_datetime:
+    if use_curr_datetime:
         year = timestamp.year
         months = [1,2,3,4,5,6,7,8,9,10,11,12]
     df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
@@ -543,5 +552,5 @@ if __name__ ==  '__main__':
     nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
-    df.to_csv(filename)
-    print(f'File saved as {filename} @ {timestamp}')
+    df.to_csv(output_file)
+    print(f'File saved as {output_file} @ {timestamp}')

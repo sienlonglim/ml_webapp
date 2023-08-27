@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import yaml
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV
@@ -88,6 +89,15 @@ class MeanEncoder():
 
 
 if __name__ ==  '__main__':
+    with open('config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+        
+        # Accounts for filepathing local and in pythonanywhere
+        if config['local']:
+            filepath_prefix = ''
+        else:
+            filepath_prefix = config['web_prefix']
+    
     # Loading data
     print(f'Loading dataframe and generating features...')
     df = pd.read_csv('static/train.csv', index_col=0)
@@ -135,9 +145,8 @@ if __name__ ==  '__main__':
 
     model_version = year + '_' + month
 
-    # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-    print(f"Scaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
-    print(f"Mean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
-    print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
-    print(f"ML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
+    print(f"Scaler object saved as {joblib.dump(scaler, f'{filepath_prefix}models/scaler_{model_version}.joblib')}")
+    print(f"Mean encoder object as{joblib.dump(mean_encoder, f'{filepath_prefix}models/mean_encoder_{model_version}.joblib')}")
+    print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json')}")
+    print(f"ML model saved as {joblib.dump(best_gbc, f'{filepath_prefix}models/gbc_{model_version}.joblib')}")
     print(f'\nAll jobs completed @ {timestamp}')

@@ -1,12 +1,14 @@
 ---
- cache_filepath: 'F:\python_stuff\hdb_project_cache.sqlite'
+ local: true
+ web_prefix: /home/natuyuki/ml_webapp/
+ local_cache_filepath: 'F:\python_stuff\hdb_project_cache.sqlite'
  use_datetime: true
  year: 2023
- months:
+ months: #if using for determining which model to use, it takes the last item
    - 01
    - 02
    - 03
    - 04
    - 05
- filename: 'static/train.csv'
+ train: 'static/train.csv'
  model_version: '2023_8'
