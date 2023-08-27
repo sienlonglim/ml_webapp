@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash
 from functools import wraps
-from models.MeanEncoder import MeanEncoder
+from MeanEncoder import MeanEncoder
 from geopy.distance import geodesic as GD
 from datetime import datetime
 import pandas as pd
@@ -10,6 +10,7 @@ import json
 import time
 import logging
 import requests
+import yaml
 
 app = Flask(__name__)
 debug= True # Debug mode should be off if hosted on an external website
@@ -130,11 +131,12 @@ def predict():
                                           index=[0])
 
         # Load the model, scaler and encoders
-        timestamp = datetime.now()
-        year = str(timestamp.year)
-        month = str(timestamp.month)
-        model_version = year + '_' + month
-
+        if use_datetime:
+            timestamp = datetime.now()
+            year = str(timestamp.year)
+            month = str(timestamp.month)
+            model_version = year + '_' + month
+            
         model = joblib.load(f'models/gbc_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
         scaler = joblib.load(f'models/scaler_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
@@ -177,4 +179,8 @@ def predict():
 # Main()
 if __name__ == "__main__":
     logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    with open('config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+        model_version = config['model_version']
+        use_datetime = config['use_datetime']
     app.run(debug=debug)

@@ -5,6 +5,7 @@ import pandas as pd
 import json
 import logging
 import time
+import yaml
 from datetime import datetime
 from requests.exceptions import HTTPError
 from pprint import pprint
@@ -456,7 +457,7 @@ def get_mrt_coordinates(filepath = 'static/mrt_dict.json'):
 
 
 @error_handler
-def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array=mrt_stations, mrt_coordinates : np.array=mrt_coordinates, 
+def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array, mrt_coordinates : np.array, 
                           n_nearest_stations: int=2, verbose : int=0):
     '''
     Function to determine nearest MRT station of the resale_flat based on latitude and longitude
@@ -502,18 +503,29 @@ def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array=mr
     return nearest_stations
 
 if __name__ ==  '__main__':
+    with open('config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+        cache_filepath = config['cache_filepath']
+        filename= config['filename']
+        use_datetime = config['use_datetime']
+        year = config['year']
+        months = config['months']
     logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.warning(f"{'-'*20}New run started {'-'*100}")
 
     # Enable caching
-    session = requests_cache.CachedSession('hdb_project_cache')
+    session = requests_cache.CachedSession(cache_filepath)
 
+    # Scraping is based on the current year
     timestamp = datetime.now()
-    year = timestamp.year
+    
+    if use_datetime:
+        year = timestamp.year
+        months = [1,2,3,4,5,6,7,8,9,10,11,12]
     df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
                             sort='month desc',
                             limit = 1000000,
-                            months = [1,2,3,4,5,6,7,8,9,10,11,12],
+                            months = months,
                             years=[year])
     df = clean_df(df)
     geo_data_df= get_location_data(df[['address']])
@@ -528,9 +540,8 @@ if __name__ ==  '__main__':
 
     n_nearest_stations = 1
     # Matrix operations to find nearest MRT stations for each row
-    nearest_stations = geo_data_df.apply(find_nearest_stations, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
+    nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
-    filename= f'static/train.csv'
     df.to_csv(filename)
     print(f'File saved as {filename} @ {timestamp}')
