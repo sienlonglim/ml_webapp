@@ -66,6 +66,7 @@ def error_handler(func, max_attempts=3, delay=120):
                 return result
     return error_handler_wrapper
 
+# Declaring all the functions
 @timeit
 @error_handler
 def get_token(location: str):
@@ -509,10 +510,12 @@ if __name__ ==  '__main__':
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             cache_filepath = config['local_cache_filepath']
-            output_file= config['train']
+            output_file_train = config['train']
+            output_file_test = config['test']
         else:
             cache_filepath = config['web_prefix']+'hdb_project_cache.sqlite'
-            output_file = config['web_prefix']+config['train']
+            output_file_train = config['web_prefix']+config['train']
+            output_file_test = config['test']
         
         # Determines whether to take the current year, or particular year and months
         use_curr_datetime = config['use_datetime']
@@ -528,8 +531,11 @@ if __name__ ==  '__main__':
     # Scraping is based on the current year
     timestamp = datetime.now()
     
+
+    # Rewrite this to auto range the months to current month
     if use_curr_datetime:
         year = timestamp.year
+        month = timestamp.month
         months = [1,2,3,4,5,6,7,8,9,10,11,12]
     df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
                             sort='month desc',
@@ -552,5 +558,12 @@ if __name__ ==  '__main__':
     nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
-    df.to_csv(output_file)
-    print(f'File saved as {output_file} @ {timestamp}')
+    
+    
+    # Split out most recent month for Test
+    test = df[df.loc['month'==months[-1]]]
+    train = df[df.loc['month'!=months[-1]]] # can do difference instead?
+    
+    train.to_csv(output_file_train)
+    print(f'File saved as {output_file_train} @ {timestamp}')
+    test.to_csv(output_file_test)
