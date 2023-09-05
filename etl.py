@@ -561,8 +561,8 @@ if __name__ ==  '__main__':
     
     
     # Split out most recent month for Test
-    test = df[df.loc['month'==months[-1]]]
-    train = df[df.loc['month'!=months[-1]]] # can do difference instead?
+    test = df[df.loc[:,'month'==months[-1]]] 
+    train = df[df.loc[:,'month'!=months[-1]]] 
     
     train.to_csv(output_file_train)
     print(f'File saved as {output_file_train} @ {timestamp}')
