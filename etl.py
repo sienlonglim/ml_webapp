@@ -520,7 +520,7 @@ if __name__ ==  '__main__':
         # Determines whether to take the current year, or particular year and months
         use_curr_datetime = config['use_datetime']
         if not use_curr_datetime:
-            year = config['year']
+            years = config['year']
             months = config['months']
     logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.warning(f"{'-'*20}New run started {'-'*100}")
@@ -534,14 +534,14 @@ if __name__ ==  '__main__':
 
     # Rewrite this to auto range the months to current month
     if use_curr_datetime:
-        year = timestamp.year
+        years = [timestamp.year]
         month = timestamp.month
         months = [1,2,3,4,5,6,7,8,9,10,11,12]
     df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
                             sort='month desc',
                             limit = 1000000,
                             months = months,
-                            years=[year])
+                            years=years)
     df = clean_df(df)
     geo_data_df= get_location_data(df[['address']])
     dist_to_marina_bay = distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
