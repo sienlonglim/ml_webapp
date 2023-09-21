@@ -100,7 +100,7 @@ if __name__ ==  '__main__':
     
     # Loading data
     print(f'Loading dataframe and generating features...')
-    df = pd.read_csv('static/train.csv', index_col=0)
+    df = pd.read_csv(f'{filepath_prefix}static/train.csv', index_col=0)
     df.dropna(inplace=True)
 
     # Feature creation and selection

@@ -24,12 +24,13 @@ def timeit(func):
         and passed to the function contained in the wrapper.
         '''
         current_time = time.strftime("%H:%M:%S", time.localtime())
+        print(f'{func.__name__}() called at \t{current_time}')
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
         time_taken = end-start
-        print(f'{func.__name__}() called at \t{current_time} \texecution time: {time_taken:.4f} seconds')
-        logging.info(f'{func.__name__}() called at \texecution time: {time_taken:.4f} seconds')
+        print(f'{func.__name__}() ended at \t{current_time} \texecution time: {time_taken:.4f} seconds')
+        logging.info(f'{func.__name__}() ended at \texecution time: {time_taken:.4f} seconds')
         return result
     return timeit_wrapper
 
@@ -93,7 +94,7 @@ def get_token(location: str):
 
 @timeit
 @error_handler
-def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 100, 
+def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 10000, verbose: bool = False,
                        months:list =[1,2,3,4,5,6,7,8,9,10,11,12], 
                        years:list =["2022"]) -> pd.DataFrame:
     '''
@@ -104,7 +105,9 @@ def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 100,
     sort: str
         field, by ascending/desc, default by Latest month
     limit: int
-        maximum entries (API default by OneMap is 100, if not specified)
+        maximum entries (API default by datagov is 100, if not specified)
+    verbose: bool
+        whether to print out the calls
     months: list
         months desired, int between 1-12
     years: list
@@ -118,10 +121,10 @@ def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 100,
     month_dict = month_dict[:-2] # Cancel out extra strings <, >
     month_dict = month_dict + ']}'
     url = url+f'&sort={sort}&filters={month_dict}'
-    if limit: # API call's default is 100 even without specifying
+    url = url+f'&limit={limit}'
+    if verbose:
         print(f'Call limit : {limit}')
-        url = url+f'&limit={limit}'
-    pprint(f'API call = {url}')
+        pprint(f'API call = {url}')
     response = requests.get(url)
     response.raise_for_status()
     data = response.json()
@@ -253,7 +256,7 @@ def clean_df(df: pd.DataFrame):
 
 @timeit
 @error_handler
-def get_location_data(address_df: pd.DataFrame, verbose=0):
+def get_location_data(address_df: pd.DataFrame, verbose : int=0):
     '''
     Function to carry out API call for Geodata
     ## Parameters
@@ -261,6 +264,7 @@ def get_location_data(address_df: pd.DataFrame, verbose=0):
         DataFrame that contains a combination of ['block'] and ['street_name'] as ['address'], and ['town']
     verbose : int
         1 to verbose calls
+        2 to verbose results
     '''
     # Getting latitude, longitude, postal code
     def get_lat_long(address_df : pd.DataFrame, sleeptime : float =0.15):
@@ -295,6 +299,7 @@ def get_location_data(address_df: pd.DataFrame, verbose=0):
             data = response.json()
             if verbose >0:
                 print(call)
+            if verbose >1:
                 pprint(data)
 
             # Returns a the results in string
@@ -513,9 +518,9 @@ if __name__ ==  '__main__':
             output_file_train = config['train']
             output_file_test = config['test']
         else:
-            cache_filepath = config['web_prefix']+'hdb_project_cache.sqlite'
+            cache_filepath = config['web_prefix']+'hdb_project_cache'
             output_file_train = config['web_prefix']+config['train']
-            output_file_test = config['test']
+            output_file_test = config['web_prefix']+config['test']
         
         # Determines whether to take the current year, or particular year and months
         use_curr_datetime = config['use_datetime']
@@ -526,7 +531,7 @@ if __name__ ==  '__main__':
     logging.warning(f"{'-'*20}New run started {'-'*100}")
 
     # Enable caching
-    session = requests_cache.CachedSession(cache_filepath)
+    session = requests_cache.CachedSession(cache_filepath, backend="sqlite")
 
     # Scraping is based on the current year
     timestamp = datetime.now()
@@ -536,14 +541,24 @@ if __name__ ==  '__main__':
     if use_curr_datetime:
         years = [timestamp.year]
         month = timestamp.month
-        months = [1,2,3,4,5,6,7,8,9,10,11,12]
-    df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
-                            sort='month desc',
-                            limit = 1000000,
-                            months = months,
-                            years=years)
+        months = [x for x in range(1,month+1)]
+
+    # There is now a limit to the API calls, so split to individual call for each month instead
+    df = pd.DataFrame()
+    for month in months:
+        temp_df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
+                                sort='month desc',
+                                limit = 10000,
+                                months = [month],
+                                years=years)
+        print(temp_df.shape)
+        if df.empty:
+            df = temp_df
+        else:
+            df = pd.concat([df, temp_df])
+
     df = clean_df(df)
-    geo_data_df= get_location_data(df[['address']])
+    geo_data_df= get_location_data(df[['address']], verbose=1)
     dist_to_marina_bay = distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
     dist_to_marina_bay = pd.Series(dist_to_marina_bay, name='dist_to_marina_bay')
     df = pd.concat([df, dist_to_marina_bay, geo_data_df['latitude'], geo_data_df['longitude'], geo_data_df['postal_code']], axis=1)
@@ -561,8 +576,8 @@ if __name__ ==  '__main__':
     
     
     # Split out most recent month for Test
-    test = df[df.loc[:,'month'==months[-1]]] 
-    train = df[df.loc[:,'month'!=months[-1]]] 
+    test = df[df['month']==months[-1]] 
+    train = df[df['month']!=months[-1]] 
     
     train.to_csv(output_file_train)
     print(f'File saved as {output_file_train} @ {timestamp}')
