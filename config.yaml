@@ -1,7 +1,7 @@
 ---
- local: false
+ local: true
  web_prefix: /home/natuyuki/ml_webapp/
- local_cache_filepath: 'F:\python_stuff\hdb_project_cache.sqlite'
+ local_cache_filepath: 'F:\python_stuff\hdb_project_cache'
  use_datetime: true
  year: 
    - 2023
@@ -13,4 +13,4 @@
    - 5
  train: 'static/train.csv'
  test: 'static/test.csv'
- model_version: '2023_8'
+ model_version: '2023_9'
