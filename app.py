@@ -14,19 +14,19 @@ import yaml
 
 app = Flask(__name__)
 with open('config.yaml', 'r') as file:
-        config = yaml.safe_load(file)
+    config = yaml.safe_load(file)
 
-        # Debug mode should be off if hosted on an external website
-        debug= config['local'] 
-        
-        # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
-        model_version = config['model_version']
-                    
-        # Accounts for filepathing local and in pythonanywhere
-        if config['local']:
-            filepath_prefix = ''
-        else:
-            filepath_prefix = config['web_prefix']
+    # Debug mode should be off if hosted on an external website
+    debug= config['local'] 
+    
+    # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
+    model_version = config['model_version']
+                
+    # Accounts for filepathing local and in pythonanywhere
+    if config['local']:
+        filepath_prefix = ''
+    else:
+        filepath_prefix = config['web_prefix']
 
 # Customs classes, functions, decorators
 def get_value_from_json(json_file, key, sub_key=None):
