@@ -1,3 +1,7 @@
+'''
+This script build the model using the train and test data
+'''
+
 import numpy as np
 import pandas as pd
 import yaml
@@ -91,14 +95,14 @@ class MeanEncoder():
 if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
-        
+
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             filepath_prefix = ''
         else:
             filepath_prefix = config['web_prefix']
     
-    # Loading data
+    # Loading training data
     print(f'Loading dataframe and generating features...')
     df = pd.read_csv(f'{filepath_prefix}static/train.csv', index_col=0)
     df.dropna(inplace=True)
@@ -138,13 +142,8 @@ if __name__ ==  '__main__':
     best_gbc = random_cv.best_estimator_
 
     # Saving
-    print('Saving...')
-    timestamp = datetime.now()
-    year = str(timestamp.year)
-    month = str(timestamp.month)
-
-    model_version = year + '_' + month
-
+    model_version = config['save_model_version']
+    print('\nSaving...')
     print(f"Scaler object saved as {joblib.dump(scaler, f'{filepath_prefix}models/scaler_{model_version}.joblib')}")
     print(f"Mean encoder object as{joblib.dump(mean_encoder, f'{filepath_prefix}models/mean_encoder_{model_version}.joblib')}")
     print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json')}")

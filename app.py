@@ -103,9 +103,6 @@ app.secret_key = get_value_from_json(".venv/secrets.json", "flask", "SECRET_KEY"
 # Flask Routing methods
 @app.route("/")
 def index():
-    '''
-    Index page
-    '''
     return render_template('index.html')
 
 @app.route('/dataset')
@@ -130,19 +127,13 @@ def predict():
                                           'rooms':float(request.form['rooms'])},
                                           index=[0])
 
-        # Load the model, scaler and encoders
-        if use_curr_datetime:
-            timestamp = datetime.now()
-            year = str(timestamp.year)
-            month = str(timestamp.month)
-            model_version = year + '_' + month
-            
-        model = joblib.load(f'{filepath_prefix}models/gbc_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-        scaler = joblib.load(f'{filepath_prefix}models/scaler_{model_version}.joblib') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        # Load the model, scaler and encoders           
+        model = joblib.load(f'{filepath_prefix}models/gbc_{model_version}.joblib') 
+        scaler = joblib.load(f'{filepath_prefix}models/scaler_{model_version}.joblib') 
         # mean_encoder = joblib.load('models/mean_encoder.joblib')
         # Alternative to pickling my own Class, set the encoder using a json
         mean_encoder = MeanEncoder()
-        mean_encoder.set_from_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json') # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
+        mean_encoder.set_from_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json') 
 
         df = pd.DataFrame(data, index=[0])
 
@@ -181,14 +172,10 @@ if __name__ == "__main__":
     logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
+
+        # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
         model_version = config['model_version']
-        
-        # Determines whether we want to specify a particular model to use
-        use_curr_datetime = config['use_datetime']
-        if not use_curr_datetime:
-            year = config['year']
-            months = config['months'][-1]
-        
+                    
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             filepath_prefix = ''

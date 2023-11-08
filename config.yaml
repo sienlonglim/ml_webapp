@@ -1,11 +1,11 @@
 ---
- local: true
+ local: False # Whether to run app.py locally or on pythonanywhere
  web_prefix: /home/natuyuki/ml_webapp/
  local_cache_filepath: 'F:\python_stuff\hdb_project_cache'
- use_datetime: true
- year: 
+ use_datetime: true # For extracting from data.gov.sg (using latest data)
+ year: # For extracting from data.gov.sg
    - 2023
- months: #if using for determining which model to use, it takes the last item
+ months: # For extracting from data.gov.sg
    - 1
    - 2
    - 3
@@ -13,4 +13,5 @@
    - 5
  train: 'static/train.csv'
  test: 'static/test.csv'
- model_version: '2023_9'
+ model_version: '2023_11'
+ save_model_version: '2023_11' # For saving built model

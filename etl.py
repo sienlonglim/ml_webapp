@@ -1,3 +1,10 @@
+'''
+This script performs the ETL process, config.yaml specifies which months' data to extract, transform, and load as a csv
+1. API call is made to extract monthly data from data.gov.sg
+2. Script performs tranformation of data, and searches for geolocations and routing to city center + nearest mrt stations
+3. Splits data into train (all previous months) and test set (most recent month)
+'''
+
 import requests
 import requests_cache
 import numpy as np
@@ -522,26 +529,22 @@ if __name__ ==  '__main__':
             output_file_train = config['web_prefix']+config['train']
             output_file_test = config['web_prefix']+config['test']
         
-        # Determines whether to take the current year, or particular year and months
+        # Determines whether to extract all data for current year, or particular year and months
         use_curr_datetime = config['use_datetime']
+        if use_curr_datetime:
+            timestamp = datetime.now()
+            years = [timestamp.year]
+            month = timestamp.month
+            months = [x for x in range(1,month+1)]
         if not use_curr_datetime:
             years = config['year']
             months = config['months']
+
     logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.warning(f"{'-'*20}New run started {'-'*100}")
 
     # Enable caching
     session = requests_cache.CachedSession(cache_filepath, backend="sqlite")
-
-    # Scraping is based on the current year
-    timestamp = datetime.now()
-    
-
-    # Rewrite this to auto range the months to current month
-    if use_curr_datetime:
-        years = [timestamp.year]
-        month = timestamp.month
-        months = [x for x in range(1,month+1)]
 
     # There is now a limit to the API calls, so split to individual call for each month instead
     df = pd.DataFrame()
@@ -557,6 +560,7 @@ if __name__ ==  '__main__':
         else:
             df = pd.concat([df, temp_df])
 
+    # Data transformation and geolocationing
     df = clean_df(df)
     geo_data_df= get_location_data(df[['address']], verbose=1)
     dist_to_marina_bay = distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
@@ -574,11 +578,15 @@ if __name__ ==  '__main__':
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
     
+    # Save data
+    df.to_csv('static/2023.csv')
+    print(f'\nFull data saved as "static/2023.csv" @ {datetime.now()}')
     
-    # Split out most recent month for Test
+    # Split out most recent month as Test data, the rest as training data
     test = df[df['month']==months[-1]] 
     train = df[df['month']!=months[-1]] 
     
     train.to_csv(output_file_train)
-    print(f'File saved as {output_file_train} @ {timestamp}')
+    print(f'Training data saved as {output_file_train} @ {datetime.now()}')
     test.to_csv(output_file_test)
+    print(f'Test data saved as {output_file_test} @ {datetime.now()}')
