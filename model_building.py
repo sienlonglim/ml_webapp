@@ -1,7 +1,7 @@
 '''
 This script build the model using the train and test data
 '''
-
+import sys
 import numpy as np
 import pandas as pd
 import yaml
@@ -95,6 +95,10 @@ class MeanEncoder():
 if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
+
+        if config['automation'] & datetime.now().day != 30:
+            print('Exiting script - script will only run on 30th of each month')
+            sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:

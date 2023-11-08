@@ -11,6 +11,9 @@ import time
 import logging
 import requests
 import yaml
+import os
+
+os.chdir("/home/natuyuki/ml_webapp/")
 
 app = Flask(__name__)
 with open('config.yaml', 'r') as file:

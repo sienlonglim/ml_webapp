@@ -15,3 +15,4 @@
  test: 'static/test.csv'
  model_version: '2023_11'
  save_model_version: '2023_11' # For saving built model
+ automation: True # For recurrent runs at the end of each month

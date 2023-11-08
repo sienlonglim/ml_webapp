@@ -4,7 +4,7 @@ This script performs the ETL process, config.yaml specifies which months' data t
 2. Script performs tranformation of data, and searches for geolocations and routing to city center + nearest mrt stations
 3. Splits data into train (all previous months) and test set (most recent month)
 '''
-
+import sys
 import requests
 import requests_cache
 import numpy as np
@@ -519,6 +519,10 @@ if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
         
+        if config['automation'] & datetime.now().day != 30:
+            print('Exiting script - script will only run on 30th of each month')
+            sys.exit()
+
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             cache_filepath = config['local_cache_filepath']
