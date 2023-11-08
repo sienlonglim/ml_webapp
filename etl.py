@@ -520,7 +520,7 @@ if __name__ ==  '__main__':
         config = yaml.safe_load(file)
         
         if config['automation'] & datetime.now().day != 30:
-            print('Exiting script - script will only run on 30th of each month')
+            print('Exiting ETL script - script will only run on 30th of each month')
             sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
