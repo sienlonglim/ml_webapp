@@ -148,4 +148,4 @@ if __name__ ==  '__main__':
     print(f"Mean encoder object as{joblib.dump(mean_encoder, f'{filepath_prefix}models/mean_encoder_{model_version}.joblib')}")
     print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'{filepath_prefix}models/encoding_dict_{model_version}.json')}")
     print(f"ML model saved as {joblib.dump(best_gbc, f'{filepath_prefix}models/gbc_{model_version}.joblib')}")
-    print(f'\nAll jobs completed @ {timestamp}')
+    print(f'\nAll jobs completed @ {datetime.now()}')

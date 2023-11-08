@@ -13,7 +13,6 @@ import requests
 import yaml
 
 app = Flask(__name__)
-debug= True # Debug mode should be off if hosted on an external website
 
 # Customs classes, functions, decorators
 def get_value_from_json(json_file, key, sub_key=None):
@@ -97,9 +96,6 @@ def distance_to(from_address : str, to_address : str, verbose : int=0):
     geodesic_dist = GD(from_coordinates, to_coordinates).kilometers
     return np.round(geodesic_dist,2)
 
-# Getting the credentials for the session and database access
-app.secret_key = get_value_from_json(".venv/secrets.json", "flask", "SECRET_KEY") # Add prefix for pyanywhere - /home/natuyuki/ml_webapp/
-
 # Flask Routing methods
 @app.route("/")
 def index():
@@ -173,6 +169,9 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
 
+        # Debug mode should be off if hosted on an external website
+        debug= config['local'] 
+        
         # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
         model_version = config['model_version']
                     
@@ -181,4 +180,8 @@ if __name__ == "__main__":
             filepath_prefix = ''
         else:
             filepath_prefix = config['web_prefix']
+        
+        # Getting the credentials for the session and database access
+        app.secret_key = get_value_from_json(f"{filepath_prefix}/secrets.json", "flask", "SECRET_KEY") 
+
     app.run(debug=debug)
