@@ -13,6 +13,20 @@ import requests
 import yaml
 
 app = Flask(__name__)
+with open('config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+
+        # Debug mode should be off if hosted on an external website
+        debug= config['local'] 
+        
+        # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
+        model_version = config['model_version']
+                    
+        # Accounts for filepathing local and in pythonanywhere
+        if config['local']:
+            filepath_prefix = ''
+        else:
+            filepath_prefix = config['web_prefix']
 
 # Customs classes, functions, decorators
 def get_value_from_json(json_file, key, sub_key=None):
@@ -166,22 +180,6 @@ def predict():
 # Main()
 if __name__ == "__main__":
     logging.basicConfig(filename='app.log', filemode='a', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    with open('config.yaml', 'r') as file:
-        config = yaml.safe_load(file)
-
-        # Debug mode should be off if hosted on an external website
-        debug= config['local'] 
-        
-        # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
-        model_version = config['model_version']
-                    
-        # Accounts for filepathing local and in pythonanywhere
-        if config['local']:
-            filepath_prefix = ''
-        else:
-            filepath_prefix = config['web_prefix']
-        
-        # Getting the credentials for the session and database access
-        app.secret_key = get_value_from_json(f"{filepath_prefix}/secrets.json", "flask", "SECRET_KEY") 
-
+    # Getting the credentials for the session and database access
+    app.secret_key = get_value_from_json(f"{filepath_prefix}/secrets.json", "flask", "SECRET_KEY") 
     app.run(debug=debug)
