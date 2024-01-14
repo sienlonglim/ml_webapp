@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash
 from functools import wraps
-from MeanEncoder import MeanEncoder
+from modules.MeanEncoder import MeanEncoder
 from geopy.distance import geodesic as GD
 from datetime import datetime
 import pandas as pd

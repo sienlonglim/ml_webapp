@@ -1,0 +1,8 @@
+scikit-learn
+streamlit
+flask
+seaborn
+requests-cache
+geopy
+joblib
+PyYAML

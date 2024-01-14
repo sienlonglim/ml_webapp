@@ -1,7 +1,7 @@
 ---
  local: False # Whether to run app.py locally or on pythonanywhere
  web_prefix: /home/natuyuki/ml_webapp/
- local_cache_filepath: 'F:\python_stuff\hdb_project_cache'
+ local_cache_filepath: 'ignore/hdb_project_cache'
  use_datetime: true # For extracting from data.gov.sg (using latest data)
  year: # For extracting from data.gov.sg
    - 2023
