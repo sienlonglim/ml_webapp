@@ -23,6 +23,7 @@ from modules.utils import *
 def get_token(location: str):
     '''
     Function to check if API token is still valid and updates API token if outdated
+    The API token is necessary for routing API calls to determine distance to nearest MRT
     ##Parameters
         location: filepath (str)
     Returns API token : str
@@ -342,6 +343,43 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
 
     return diff_dist
 
+@timeit
+def web_distance_to(from_address : str, to_address : str, verbose : int=0):
+    '''
+    Function to determine distance to a location
+    ## Parameters
+    postcode : int containing postcode
+    to_address : str
+        place and streetname
+    verbose : int
+        whether to show the workings of the function
+
+    Returns np.Series of distance between input and location
+    '''
+    if not isinstance(from_address, str) or not isinstance(to_address, str):
+        raise ValueError('Input must be string')
+    
+    # get from address
+    call = f'https://developers.onemap.sg/commonapi/search?searchVal={from_address}&returnGeom=Y&getAddrDetails=Y'
+    response = requests.get(call)
+    response.raise_for_status()
+    data = response.json()
+    from_coordinates = (float(data['results'][0]['LATITUDE']), float(data['results'][0]['LONGITUDE']))
+    if verbose==1:
+        print(f'Coordinates of {from_address} : {from_coordinates}')
+
+    # get to address
+    call = f'https://developers.onemap.sg/commonapi/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y'
+    response = requests.get(call)
+    response.raise_for_status()
+    data = response.json()
+    to_coordinates = (float(data['results'][0]['LATITUDE']), float(data['results'][0]['LONGITUDE']))
+    if verbose==1:
+        print(f'Coordinates of {to_address} : {to_coordinates}')
+
+    # calculate geodesic distance
+    geodesic_dist = GD(from_coordinates, to_coordinates).kilometers
+    return np.round(geodesic_dist,2)
 
 @timeit
 @error_handler
@@ -469,7 +507,7 @@ if __name__ ==  '__main__':
         if config['local']:
             cache_filepath = config['local_cache_filepath']
         else:
-            os.chdir(config['web_prefix'])
+            os.chdir(config['web_directory'])
             cache_filepath = 'project_cache'
         
         # files to append to

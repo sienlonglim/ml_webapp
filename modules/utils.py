@@ -1,6 +1,7 @@
 import logging
 import time
 import sys
+import json
 from requests.exceptions import HTTPError
 from functools import wraps
 
@@ -81,3 +82,18 @@ def error_handler(func, max_attempts=3, delay=120):
             else:
                 return result
     return error_handler_wrapper
+
+def get_value_from_json(json_file, key, sub_key=None):
+   '''
+   Function to read json config files
+   ## Parameters
+    json_file : str, pathname to json file
+    key : str, key
+    sub_key : nested key, if applicable
+   '''
+   with open(json_file) as f:
+    data = json.load(f)
+    if sub_key:
+        return data[key][sub_key]
+    else:
+        return data[key]
