@@ -113,4 +113,4 @@ st.write('---')
 # Map
 st.subheader('Map of data')
 map_data = df.loc[:,['latitude', 'longitude']]
-st.map(data=map_data, zoom=11)
+st.map(data=map_data, zoom=11, size=5)
