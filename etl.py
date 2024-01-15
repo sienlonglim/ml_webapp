@@ -4,75 +4,18 @@ This script performs the ETL process, config.yaml specifies which months' data t
 2. Script performs tranformation of data, and searches for geolocations and routing to city center + nearest mrt stations
 3. Splits data into train (all previous months) and test set (most recent month)
 '''
+import os
 import sys
 import requests
 import requests_cache
 import numpy as np
 import pandas as pd
 import json
-import logging
-import time
 import yaml
 from datetime import datetime
-from requests.exceptions import HTTPError
 from pprint import pprint
-from functools import wraps
 from geopy.distance import geodesic as GD
-
-# Wrapper for timing function calls:
-def timeit(func):
-    '''
-    Wrapper to time function call
-    '''
-    @wraps(func)
-    def timeit_wrapper(*args, **kwargs):
-        '''
-        *args and **kwargs here allow parameters for the original function to be taken in
-        and passed to the function contained in the wrapper.
-        '''
-        current_time = time.strftime("%H:%M:%S", time.localtime())
-        print(f'{func.__name__}() called at \t{current_time}')
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        end = time.perf_counter()
-        time_taken = end-start
-        print(f'{func.__name__}() ended at \t{current_time} \texecution time: {time_taken:.4f} seconds')
-        logging.info(f'{func.__name__}() ended at \texecution time: {time_taken:.4f} seconds')
-        return result
-    return timeit_wrapper
-
-def error_handler(func, max_attempts=3, delay=120):
-    '''
-    Wrapper to catch and handle errors
-    '''
-    @wraps(func)
-    def error_handler_wrapper(*args, **kwargs):
-        '''
-        *args and **kwargs here allow parameters for the original function to be taken in
-        and passed to the function contained in the wrapper, without needed to declare them in the wrapper function.
-        '''
-        for i in range(max_attempts):
-            try:
-                result = func(*args, **kwargs)
-            except HTTPError as err:
-                logging.error(f'{func.__name__}() encountered {err}')
-                # Raise exception if we reach max tries
-                if i == max_attempts:
-                    raise HTTPError(f'Exceeded max tries of {max_attempts}')
-                print(f'{func.__name__}() encountered {err}')
-
-                # err.response gives us the Response object from requests module, we can call .status_code to get the code as int
-                if err.response.status_code == 429:
-                    print(f'Sleeping for {delay} seconds', end = '\t')
-                    time.sleep(delay)
-                    print('Retrying...', end='\t')
-            except Exception as err:
-                logging.error(f'{func.__name__}() encountered {err}') 
-                print(f'{func.__name__}() encountered {err}')
-                break
-            else:
-                return result
-    return error_handler_wrapper
+from modules.utils import *
 
 # Declaring all the functions
 @timeit
@@ -90,12 +33,12 @@ def get_token(location: str):
         response = requests.post("https://developers.onemap.sg/privateapi/auth/post/getToken", data=data)
         token = response.json()
         if token['access_token'] != data['access_token']:
-            print(f"New token found")
+            logger.info(f"New token found")
             data['access_token'] = token['access_token']
             data['expiry_timestamp'] = token['expiry_timestamp']
             fp.seek(0)
             json.dump(data, fp = fp, indent=4)
-            print('Updated token json')
+            logger.info('Updated token json')
             data = json.loads(file)
         return data['access_token']
 
@@ -130,8 +73,8 @@ def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 10000, v
     url = url+f'&sort={sort}&filters={month_dict}'
     url = url+f'&limit={limit}'
     if verbose:
-        print(f'Call limit : {limit}')
-        pprint(f'API call = {url}')
+        logger.info(f'Call limit : {limit}')
+        logger.info(f'API call = {url}')
     response = requests.get(url)
     response.raise_for_status()
     data = response.json()
@@ -181,10 +124,10 @@ def clean_df(df: pd.DataFrame):
         df['resale_price'] = df['resale_price'].astype('float')
         df['floor_area_sqm'] = df['floor_area_sqm'].astype('float')
         step = 5
-        df['timeseries_month'] = pd.to_datetime(df['month'], format="%Y-%m")
+        df['year_month'] = pd.to_datetime(df['month'], format="%Y-%m")
         step = 6
-        df['year'] = df['timeseries_month'].dt.year
-        df['month'] = df['timeseries_month'].dt.month
+        df['year'] = df['year_month'].dt.year
+        df['month'] = df['year_month'].dt.month
         step = 7
         df['lease_commence_date'] = df['lease_commence_date'].astype('int')
         
@@ -253,15 +196,14 @@ def clean_df(df: pd.DataFrame):
                     'Toa Payoh' : 'Central'}      
         df['region'] = df['town'].map(town_regions)
     except Exception as err:
-        print(f"Error at step {step}, error message: {err}")
+        logger.info(f"Error at step {step}, error message: {err}", exc_info=True)
     else:
         # Reorder columns
         
-        df = df[['resale_price', 'year', 'month', 'timeseries_month', 'region', 'town', 'rooms', 'avg_storey', 'floor_area_sqm', 'remaining_lease', 'address']]
+        df = df[['resale_price', 'year', 'month', 'year_month', 'region', 'town', 'rooms', 'avg_storey', 'floor_area_sqm', 'remaining_lease', 'address']]
                 # Unused columns - 'lease_commence_date', 'flat_model', 'storey_range', 'flat_type', 'block', 'street_name'
     return df
 
-@timeit
 @error_handler
 def get_location_data(address_df: pd.DataFrame, verbose : int=0):
     '''
@@ -305,16 +247,16 @@ def get_location_data(address_df: pd.DataFrame, verbose : int=0):
             response.raise_for_status()
             data = response.json()
             if verbose >0:
-                print(call)
+                logger.info(call)
             if verbose >1:
-                pprint(data)
+                logger.info(data)
 
             # Returns a the results in string
             return data['results'][0]['LATITUDE'] + ',' + data['results'][0]['LONGITUDE'] + ' ' + data['results'][0]['POSTAL']
         
         except Exception as err:
-            print(f'Error occurred - get_lat_long() API call: {err} on the following call:')
-            pprint(call)
+            logger.error(f'Error occurred - get_lat_long() API call: {err} on the following call:', exc_info=True)
+            logger.info(call)
             return '0,0 0' # Still return 0 values
 
     def to_numpy_array(lat_long_df):
@@ -338,7 +280,7 @@ def get_location_data(address_df: pd.DataFrame, verbose : int=0):
         numpy_array = lat_long_df.apply(to_numpy_array, axis=1)
         
     except Exception as err:
-        print(f"Error occurred - Splitting data : {err}")
+        logger.error(f"Error occurred - Splitting data : {err}")
     else:
         geo_data_df = pd.concat([temp_df, lat_long_df, numpy_array], axis=1)
         geo_data_df.columns = ['lat_long', 'postal_code', 'latitude', 'longitude', 'numpy_array']
@@ -368,7 +310,7 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
         to_coordinates = np.array([float(data['results'][0]['LATITUDE']), float(data['results'][0]['LONGITUDE'])])
 
     if verbose==1:
-        print(f'Coordinates of {to_address} : {to_coordinates}')
+        logger.info(f'Coordinates of {to_address} : {to_coordinates}')
 
     def matrix_operations(from_coordinates, to_coordinates):
         # Matrix substraction to get difference 
@@ -379,11 +321,11 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
         sum_of_distances = np.sum(absolute_dist)
 
         if verbose==2:
-            print(f'Difference in distances: \n{distance_diff}')
-            print()
-            print(f'Absolute difference: \n{absolute_dist}')
-            print()
-            print(f'Sum of distances \n {sum_of_distances}')
+            logger.info(f'Difference in distances: \n{distance_diff}')
+            logger.info()
+            logger.info(f'Absolute difference: \n{absolute_dist}')
+            logger.info()
+            logger.info(f'Sum of distances \n {sum_of_distances}')
         
         return sum_of_distances
 
@@ -403,7 +345,7 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
 
 @timeit
 @error_handler
-def update_mrt_coordinates(mrt_stations=None, filepath='static/mrt_dict.json'):
+def get_mrt_coordinates(mrt_stations: str=None, filepath: str=None)-> None:
     '''
     Function to API call for MRT station coordinates and write to json file
     ## Parameters
@@ -455,7 +397,7 @@ def update_mrt_coordinates(mrt_stations=None, filepath='static/mrt_dict.json'):
 
 @timeit
 @error_handler
-def get_mrt_coordinates(filepath = 'static/mrt_dict.json'):
+def load_mrt_coordinates(filepath: str) -> dict:
     '''
     Function to read saved mrt_coordinates from json file
     ## Parameters
@@ -470,8 +412,8 @@ def get_mrt_coordinates(filepath = 'static/mrt_dict.json'):
 
 
 @error_handler
-def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array, mrt_coordinates : np.array, 
-                          n_nearest_stations: int=2, verbose : int=0):
+def find_nearest_stations(*args, geo_data_df : pd.DataFrame, mrt_stations : np.array, mrt_coordinates : np.array, 
+                          n_nearest_stations: int=2, verbose : int=0) -> list:
     '''
     Function to determine nearest MRT station of the resale_flat based on latitude and longitude
     ## Parameters
@@ -502,16 +444,16 @@ def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array, m
         nearest_stations.append(np.round(geodesic_dist,2))
 
     if verbose==1:
-        print(f'Difference in distances: \n{distance_diff[:5]}')
-        print()
-        print(f'Absolute difference: \n{absolute_dist[:5]}')
-        print()
-        print(f'Sum of distances \n {sum_of_distances[:5]}')
-        print()
-        print(f'Sorted distances\n{sorted_distances[:5]}')
-        print()
-        print(f'Top {n_nearest_stations}')
-        print(nearest_stations)
+        logger.info(f'Difference in distances: \n{distance_diff[:5]}')
+        logger.info()
+        logger.info(f'Absolute difference: \n{absolute_dist[:5]}')
+        logger.info()
+        logger.info(f'Sum of distances \n {sum_of_distances[:5]}')
+        logger.info()
+        logger.info(f'Sorted distances\n{sorted_distances[:5]}')
+        logger.info()
+        logger.info(f'Top {n_nearest_stations}')
+        logger.info(nearest_stations)
 
     return nearest_stations
 
@@ -520,77 +462,98 @@ if __name__ ==  '__main__':
         config = yaml.safe_load(file)
         
         if config['automation'] & datetime.now().day != 30:
-            print('Exiting ETL script - script will only run on 30th of each month')
+            logger.info('Exiting ETL script - script will only run on 30th of each month')
             sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             cache_filepath = config['local_cache_filepath']
-            output_file_train = config['train']
-            output_file_test = config['test']
         else:
-            cache_filepath = config['web_prefix']+'hdb_project_cache'
-            output_file_train = config['web_prefix']+config['train']
-            output_file_test = config['web_prefix']+config['test']
+            os.chdir(config['web_prefix'])
+            cache_filepath = 'project_cache'
         
+        # files to append to
+        output_file_train = config['train']
+        output_file_test = config['test']
+
         # Determines whether to extract all data for current year, or particular year and months
         use_curr_datetime = config['use_datetime']
         if use_curr_datetime:
             timestamp = datetime.now()
             years = [timestamp.year]
-            month = timestamp.month
-            months = [x for x in range(1,month+1)]
-        if not use_curr_datetime:
+            months = [x for x in range(1, timestamp.month+1)]
+        else:
             years = config['year']
             months = config['months']
 
-    logging.basicConfig(filename='wrangling.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logging.warning(f"{'-'*20}New run started {'-'*100}")
+    logger.info(f"{'-'*50}New run started {'-'*50}")
+    logger.info(f'Data extraction settings:')
+    logger.info(f'\tuse_curr_datetime: {use_curr_datetime}')
+    logger.info(f'\tyear(s): {years}')
+    logger.info(f'\tmonth(s): {months}')
 
     # Enable caching
     session = requests_cache.CachedSession(cache_filepath, backend="sqlite")
 
     # There is now a limit to the API calls, so split to individual call for each month instead
     df = pd.DataFrame()
+    logger.info('Making API calls to data.gov.sg')
     for month in months:
         temp_df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
                                 sort='month desc',
                                 limit = 10000,
                                 months = [month],
                                 years=years)
-        print(temp_df.shape)
+        logger.info(f'\tData df shape received: {temp_df.shape}')
         if df.empty:
             df = temp_df
         else:
             df = pd.concat([df, temp_df])
 
     # Data transformation and geolocationing
+    logger.info('Cleaning data')
     df = clean_df(df)
+
+    logger.info('Getting geolocations')
     geo_data_df= get_location_data(df[['address']], verbose=1)
+
+    logger.info('Getting distances to city center (Marina Bay)')
     dist_to_marina_bay = distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
     dist_to_marina_bay = pd.Series(dist_to_marina_bay, name='dist_to_marina_bay')
-    df = pd.concat([df, dist_to_marina_bay, geo_data_df['latitude'], geo_data_df['longitude'], geo_data_df['postal_code']], axis=1)
-    mrt_coordinates_dict = get_mrt_coordinates()
 
+    logger.info('Combining geolocation data to main')
+    df = pd.concat([df, dist_to_marina_bay, geo_data_df['latitude'], geo_data_df['longitude'], geo_data_df['postal_code']], axis=1)
+    
     # Convert coordinates into numpy arrays
+    mrt_coordinates_dict = load_mrt_coordinates()
     mrt_stations = np.array(list(mrt_coordinates_dict.keys()))
     mrt_coordinates = np.array(list(mrt_coordinates_dict.values()))
 
     n_nearest_stations = 1
     # Matrix operations to find nearest MRT stations for each row
+    logger.info(f'Finding nearest stations: n={n_nearest_stations}')
     nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
     
+
+
+    ##### TO FIGURE OUT HOW TO CONTROL TIMESERIES DATA
     # Save data
-    df.to_csv('static/2023.csv')
-    print(f'\nFull data saved as "static/2023.csv" @ {datetime.now()}')
+    csv_file = f'static/{str(datetime.year)}.csv'
+    df.to_csv(csv_file)
+    logger.info(f'\nFull data saved as "{csv_file}" @ {datetime.now()}')
     
+    
+    
+    # # Modify to look through the csv to append new rows not present
+    # READ CSV AND DEDUP
+
     # Split out most recent month as Test data, the rest as training data
-    test = df[df['month']==months[-1]] 
-    train = df[df['month']!=months[-1]] 
-    
-    train.to_csv(output_file_train)
-    print(f'Training data saved as {output_file_train} @ {datetime.now()}')
-    test.to_csv(output_file_test)
-    print(f'Test data saved as {output_file_test} @ {datetime.now()}')
+    # test = df[df['month']==year_month[-1]] 
+    # train = df[df['month']!=year_month[-1]] 
+
+    # train.to_csv(output_file_train)
+    # logger.info(f'Training data saved as {output_file_train} @ {datetime.now()}')
+    # test.to_csv(output_file_test)
+    # logger.info(f'Test data saved as {output_file_test} @ {datetime.now()}')
