@@ -6,3 +6,4 @@ requests-cache
 geopy
 joblib
 PyYAML
+python-dotenv

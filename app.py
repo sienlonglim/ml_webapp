@@ -9,6 +9,21 @@ import joblib
 import yaml
 import os
 
+app = Flask(__name__)
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+    # Debug mode should be off if hosted on an external website
+    debug= config['local'] 
+    
+    # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
+    model_version = config['model_version']
+                
+    # Accounts for filepathing local and in pythonanywhere
+    if config['local']:
+        pass
+    else:
+        os.chdir(config['web_directory'])
 
 # Flask Routing methods
 @app.route("/")
@@ -78,23 +93,7 @@ def predict():
 
 
 # Main()
-if __name__ == "__main__":
-    app = Flask(__name__)
-    with open('config.yaml', 'r') as file:
-        config = yaml.safe_load(file)
-
-        # Debug mode should be off if hosted on an external website
-        debug= config['local'] 
-        
-        # Model version is determined by the config file, however if use_curr_datetime is set to True, then it will try to search for most recent model_version
-        model_version = config['model_version']
-                    
-        # Accounts for filepathing local and in pythonanywhere
-        if config['local']:
-            pass
-        else:
-            os.chdir(config['web_directory'])
-            
+if __name__ == "__main__":           
     # Getting the credentials for the session and database access
     app.secret_key = os.environ['FLASK_KEY']
     app.run(debug=debug)

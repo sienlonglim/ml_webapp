@@ -1,6 +1,8 @@
 '''
 This script build the model using the train and test data
 '''
+from modules.MeanEncoder import MeanEncoder
+from modules.utils import *
 import sys
 import os
 import yaml
@@ -10,26 +12,35 @@ from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import  GradientBoostingRegressor
+from sklearn.metrics import r2_score, mean_absolute_error
 import joblib
-from modules import MeanEncoder
 
 if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
+        model_version = config['save_model_version']
+        train = config["train"]
+        test = config["test"]
 
-        if config['automation'] & datetime.now().day != 30:
-            print('Exiting Model Building script - script will only run on 30th of each month')
-            sys.exit()
+        # if config['automation'] & datetime.now().day != 30:
+        #     logger.info('Exiting Model Building script - script will only run on 30th of each month')
+        #     sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
             pass
         else:
-            os.chdir(config['web_prefix'])
+            os.chdir(config['web_directory'])
     
+    logger.info(f"{'-'*50}New Model building run started {'-'*50}")
+    logger.info(f'Data settings:')
+    logger.info(f'\ttrain: {train}')
+    logger.info(f'\ttest): {test}')
+    logger.info(f'\tmodel version): {model_version}')
+
     # Loading training data
-    print(f'Loading dataframe and generating features...')
-    df = pd.read_csv(config['train'], index_col=0)
+    logger.info(f'Loading dataframe and generating features...')
+    df = pd.read_csv(train, index_col=0)
     df.dropna(inplace=True)
 
     # Feature creation and selection
@@ -46,7 +57,7 @@ if __name__ ==  '__main__':
     X = scaler.fit_transform(X_unscaled)
 
     # Hyperparameter tuning
-    print('Starting hyperparameter tuning...')
+    logger.info('Starting hyperparameter tuning...')
     param_distributions = {'max_depth' : [3,5],
                         'n_estimators' : [50,100,150],
                         'learning_rate' : [0.01,0.1,1],
@@ -62,18 +73,29 @@ if __name__ ==  '__main__':
                                 n_jobs=2)
 
     random_cv.fit(X, y)
-    print('Best Parameters', random_cv.best_params_)
-    print('Best R2 score', np.round(random_cv.best_score_,3))
+    logger.info('\tBest Parameters', random_cv.best_params_)
+    logger.info('\tValidation R2 score', np.round(random_cv.best_score_,3))
     best_gbc = random_cv.best_estimator_
 
     # Test against latest data
-    test_df = config['test']
+    test_df = pd.read_csv(test, index_col=0)
+    mean_encoded = mean_encoder.transform(test_df)
+    test_df = pd.concat([test_df, mean_encoded], axis =1)
+    test_df = test_df[['resale_price','floor_area_sqm', 'remaining_lease', 'avg_storey', 'dist_to_marina_bay', 'mean_encoded']]
+    X_test = test_df.iloc[:,1:]
+    y_test = test_df.iloc[:,0]
+    X_test = scaler.transform(X_test)
+    y_pred = best_gbc.predict(X_test)
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    logger.info(f'\tReported R2 score = {np.round(r2,3)}')
+    logger.info(f'\t Reported MAE = {int(mae)}')
+
 
     # Saving
-    model_version = config['save_model_version']
-    print('\nSaving...')
-    print(f"Scaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
-    print(f"Mean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
-    print(f"Mean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
-    print(f"ML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
-    print(f'\nAll jobs completed @ {datetime.now()}')
+    logger.info('\nSaving...')
+    logger.info(f"\tScaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
+    logger.info(f"\tMean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
+    logger.info(f"\tMean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
+    logger.info(f"\tML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
+    logger.info(f'\nAll jobs completed @ {datetime.now()}')
