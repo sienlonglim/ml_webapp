@@ -83,6 +83,50 @@ def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 10000, v
     return df
 
 @timeit
+@error_handler
+def datagovsg_api_call_v2(resource_id: str='d_8b84c4ee58e3cfc0ece0d773c8ca6abc'
+                            , verbose: bool = True, **kwargs) -> pd.DataFrame:
+    '''
+    Function to build the API call and construct the pandas dataframe, 
+    data.gov now limits the calls, so it is safer to call month by month to not have data truncated
+    ## Parameters
+    resource_id: str
+        resource_id for API
+    verbose: bool
+            whether to print out the calls
+    **kwargs:
+        refer to API guide https://guide.data.gov.sg/developers/api-v2
+        e.g.:
+            year: str
+                year
+            month: 
+                month desired, int between 1-12
+            sort: str
+                field, by ascending/desc, default by Latest month
+            limit: int
+                maximum entries (API default by datagov is 100, if not specified)
+            
+    Returns Dataframe of data : pd.DataFrame
+    '''
+    payload = {}
+    if kwargs.get("year") and kwargs.get("month"):
+        year_month = f'{kwargs.get("year")}-{str(kwargs.get("month")).zfill(2)}'
+        month_filter = {"month": [year_month]}
+        # To add a nested dictionary for request get, we need to parse the nested dictionary into json format
+        payload["filters"] = json.dumps(month_filter)
+    payload["limit"] = 10000
+    payload["sort"] = 'month desc'
+
+    url = f"https://data.gov.sg/api/action/datastore_search?resource_id={resource_id}"
+    response = requests.get(url, params=payload)
+    response.raise_for_status()
+    if verbose:
+        print(f'Get request call: {response.url}')
+    data = response.json()
+    df = pd.DataFrame(data['result']['records'])
+    return df
+
+@timeit
 def clean_df(df: pd.DataFrame):
     '''
     Function to clean the raw dataframe
@@ -499,9 +543,9 @@ if __name__ ==  '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
         
-        if config['automation'] & datetime.now().day != 30:
-            logger.info('Exiting ETL script - script will only run on 30th of each month')
-            sys.exit()
+        # if config['automation'] & datetime.now().day != 30:
+        #     logger.info('Exiting ETL script - script will only run on 30th of each month')
+        #     sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
         if config['local']:
@@ -521,10 +565,10 @@ if __name__ ==  '__main__':
             years = [timestamp.year]
             months = [x for x in range(1, timestamp.month+1)]
         else:
-            years = config['year']
+            years = config['years']
             months = config['months']
 
-    logger.info(f"{'-'*50}New run started {'-'*50}")
+    logger.info(f"{'-'*50}New ETL run started {'-'*50}")
     logger.info(f'Data extraction settings:')
     logger.info(f'\tuse_curr_datetime: {use_curr_datetime}')
     logger.info(f'\tyear(s): {years}')
@@ -536,17 +580,14 @@ if __name__ ==  '__main__':
     # There is now a limit to the API calls, so split to individual call for each month instead
     df = pd.DataFrame()
     logger.info('Making API calls to data.gov.sg')
-    for month in months:
-        temp_df = datagovsg_api_call('https://data.gov.sg/api/action/datastore_search?resource_id=f1765b54-a209-4718-8d38-a39237f502b3', 
-                                sort='month desc',
-                                limit = 10000,
-                                months = [month],
-                                years=years)
-        logger.info(f'\tData df shape received: {temp_df.shape}')
-        if df.empty:
-            df = temp_df
-        else:
-            df = pd.concat([df, temp_df])
+    for year in years:
+        for month in months:
+            temp_df = datagovsg_api_call_v2(year=year, month=month)
+            logger.info(f'\tData df shape received: {temp_df.shape}')
+            if df.empty:
+                df = temp_df
+            else:
+                df = pd.concat([df, temp_df])
 
     # Data transformation and geolocationing
     logger.info('Cleaning data')

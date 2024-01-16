@@ -2,8 +2,8 @@
  local: True # Whether to run app.py locally or on pythonanywhere
  web_directory: /home/natuyuki/ml_webapp/
  local_cache_filepath: 'ignore/project_cache'
- use_datetime: true # For extracting from data.gov.sg (using latest data)
- year: # For extracting from data.gov.sg
+ use_datetime: False # For extracting from data.gov.sg (using latest data)
+ years: # For extracting from data.gov.sg
    - 2023
  months: # For extracting from data.gov.sg
    - 1
@@ -11,8 +11,15 @@
    - 3
    - 4
    - 5
+   - 6
+   - 7
+   - 8
+   - 9
+   - 10
+   - 11
+   - 12
  train: 'static/train.csv'
  test: 'static/test.csv'
- model_version: '2023_11'
- save_model_version: '2023_11' # For saving built model
+ model_version: '2023_12'
+ save_model_version: '2023_12' # For saving built model
  automation: True # For recurrent runs at the end of each month
