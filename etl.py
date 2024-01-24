@@ -5,7 +5,6 @@ This script performs the ETL process, config.yaml specifies which months' data t
 3. Splits data into train (all previous months) and test set (most recent month)
 '''
 import os
-import sys
 import requests
 import requests_cache
 import numpy as np
@@ -13,12 +12,13 @@ import pandas as pd
 import json
 import yaml
 from datetime import datetime
-from pprint import pprint
 from geopy.distance import geodesic as GD
 from modules.utils import *
 
+# Logger here is the debugger logger
+logger.info(f"{'-'*50}New run started {'-'*50}")
+
 # Declaring all the functions
-@timeit
 @error_handler
 def get_token(location: str):
     '''
@@ -43,7 +43,6 @@ def get_token(location: str):
             data = json.loads(file)
         return data['access_token']
 
-@timeit
 @error_handler
 def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 10000, verbose: bool = False,
                        months:list =[1,2,3,4,5,6,7,8,9,10,11,12], 
@@ -82,7 +81,6 @@ def datagovsg_api_call(url: str, sort: str = 'month desc', limit: int = 10000, v
     df = pd.DataFrame(data['result']['records'])
     return df
 
-@timeit
 @error_handler
 def datagovsg_api_call_v2(resource_id: str='d_8b84c4ee58e3cfc0ece0d773c8ca6abc'
                             , verbose: bool = True, **kwargs) -> pd.DataFrame:
@@ -121,7 +119,7 @@ def datagovsg_api_call_v2(resource_id: str='d_8b84c4ee58e3cfc0ece0d773c8ca6abc'
     response = requests.get(url, params=payload)
     response.raise_for_status()
     if verbose:
-        print(f'Get request call: {response.url}')
+        logger.info(f'Response: {response.status_code} \tGet request call: {response.url}')
     data = response.json()
     df = pd.DataFrame(data['result']['records'])
     return df
@@ -169,10 +167,11 @@ def clean_df(df: pd.DataFrame):
         df['resale_price'] = df['resale_price'].astype('float')
         df['floor_area_sqm'] = df['floor_area_sqm'].astype('float')
         step = 5
-        df['year_month'] = pd.to_datetime(df['month'], format="%Y-%m")
+        df['year_month'] = df['month']
+        df['year_month_dt'] = pd.to_datetime(df['month'], format="%Y-%m")
         step = 6
-        df['year'] = df['year_month'].dt.year
-        df['month'] = df['year_month'].dt.month
+        df['year'] = df['year_month_dt'].dt.year
+        df['month'] = df['year_month_dt'].dt.month
         step = 7
         df['lease_commence_date'] = df['lease_commence_date'].astype('int')
         
@@ -250,7 +249,7 @@ def clean_df(df: pd.DataFrame):
     return df
 
 @error_handler
-def get_location_data(address_df: pd.DataFrame, verbose : int=0):
+def get_location_data(address_df: pd.DataFrame, verbose : int=0, cached_session : requests_cache.CachedSession =None):
     '''
     Function to carry out API call for Geodata
     ## Parameters
@@ -286,13 +285,15 @@ def get_location_data(address_df: pd.DataFrame, verbose : int=0):
                 address = '680215'
             elif '216, Choa Chu Kang Ctrl' in address:
                 address = '680216'
-            call = f'https://developers.onemap.sg/commonapi/search?searchVal={address}&returnGeom=Y&getAddrDetails=Y'
+                
+            call = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={address}&returnGeom=Y&getAddrDetails=Y"
+            # call = f'https://developers.onemap.sg/commonapi/search?searchVal={address}&returnGeom=Y&getAddrDetails=Y' # Old API call
             # Caching is enabled in the session
-            response = session.get(call)
+            response = cached_session.get(call)
             response.raise_for_status()
             data = response.json()
             if verbose >0:
-                logger.info(call)
+                logger.info(f'Response: {response.status_code} \tGet request call: {response.url}')
             if verbose >1:
                 logger.info(data)
 
@@ -301,7 +302,6 @@ def get_location_data(address_df: pd.DataFrame, verbose : int=0):
         
         except Exception as err:
             logger.error(f'Error occurred - get_lat_long() API call: {err} on the following call:', exc_info=True)
-            logger.info(call)
             return '0,0 0' # Still return 0 values
 
     def to_numpy_array(lat_long_df):
@@ -332,7 +332,7 @@ def get_location_data(address_df: pd.DataFrame, verbose : int=0):
         return geo_data_df
 
 @error_handler
-def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlong', verbose : int=0):
+def multiple_distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlong', verbose : int=0):
     '''
     Function to determine distance to a location (from a series of locations in a dataframe
     ## Parameters
@@ -348,7 +348,8 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
     '''
     # if an address is given
     if isinstance(to_address, str):
-        call = f'https://developers.onemap.sg/commonapi/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y'
+        call = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y"
+        # call = f'https://developers.onemap.sg/commonapi/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y' # Old API Call
         response = requests.get(call)
         response.raise_for_status()
         data = response.json()
@@ -387,8 +388,8 @@ def distance_to(df_series : pd.Series, to_address : str , dist_type : str='latlo
 
     return diff_dist
 
-@timeit
-def web_distance_to(from_address : str, to_address : str, verbose : int=0):
+@error_handler
+def single_distance_to(from_address : str, to_address : str, verbose : int=0):
     '''
     Function to determine distance to a location
     ## Parameters
@@ -404,28 +405,27 @@ def web_distance_to(from_address : str, to_address : str, verbose : int=0):
         raise ValueError('Input must be string')
     
     # get from address
-    call = f'https://developers.onemap.sg/commonapi/search?searchVal={from_address}&returnGeom=Y&getAddrDetails=Y'
+    call = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={from_address}&returnGeom=Y&getAddrDetails=Y"
     response = requests.get(call)
     response.raise_for_status()
     data = response.json()
     from_coordinates = (float(data['results'][0]['LATITUDE']), float(data['results'][0]['LONGITUDE']))
     if verbose==1:
-        print(f'Coordinates of {from_address} : {from_coordinates}')
+        logger.info(f'Coordinates of {from_address} : {from_coordinates}')
 
     # get to address
-    call = f'https://developers.onemap.sg/commonapi/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y'
+    call = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={to_address}&returnGeom=Y&getAddrDetails=Y"
     response = requests.get(call)
     response.raise_for_status()
     data = response.json()
     to_coordinates = (float(data['results'][0]['LATITUDE']), float(data['results'][0]['LONGITUDE']))
     if verbose==1:
-        print(f'Coordinates of {to_address} : {to_coordinates}')
+        logger.info(f'Coordinates of {to_address} : {to_coordinates}')
 
     # calculate geodesic distance
     geodesic_dist = GD(from_coordinates, to_coordinates).kilometers
     return np.round(geodesic_dist,2)
 
-@timeit
 @error_handler
 def get_mrt_coordinates(mrt_stations: str=None, filepath: str=None)-> None:
     '''
@@ -467,7 +467,7 @@ def get_mrt_coordinates(mrt_stations: str=None, filepath: str=None)-> None:
 
     mrt_coordinates = {}
     for mrt in mrt_stations:
-        response = requests.get(f"https://developers.onemap.sg/commonapi/search?searchVal={mrt}&returnGeom=Y&getAddrDetails=Y")
+        response = requests.get(f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={mrt}&returnGeom=Y&getAddrDetails=Y")
         response.raise_for_status()
         data = response.json()
         # string (lat,long) as key
@@ -494,7 +494,7 @@ def load_mrt_coordinates(filepath: str) -> dict:
 
 
 @error_handler
-def find_nearest_stations(*args, geo_data_df : pd.DataFrame, mrt_stations : np.array, mrt_coordinates : np.array, 
+def find_nearest_stations(geo_data_df : pd.DataFrame, mrt_stations : np.array, mrt_coordinates : np.array, 
                           n_nearest_stations: int=2, verbose : int=0) -> list:
     '''
     Function to determine nearest MRT station of the resale_flat based on latitude and longitude
@@ -568,6 +568,9 @@ if __name__ ==  '__main__':
             years = config['years']
             months = config['months']
 
+    # Get the correct logger
+    logger = logging.getLogger(__name__) #etl
+
     logger.info(f"{'-'*50}New ETL run started {'-'*50}")
     logger.info(f'Data extraction settings:')
     logger.info(f'\tuse_curr_datetime: {use_curr_datetime}')
@@ -588,23 +591,28 @@ if __name__ ==  '__main__':
                 df = temp_df
             else:
                 df = pd.concat([df, temp_df])
+    logger.info('\t\tCompleted')
 
     # Data transformation and geolocationing
     logger.info('Cleaning data')
     df = clean_df(df)
+    logger.info('\t\tCompleted')
 
     logger.info('Getting geolocations')
-    geo_data_df= get_location_data(df[['address']], verbose=1)
+    geo_data_df= get_location_data(df[['address']], verbose=1, cached_session=session)
+    logger.info('\t\tCompleted')
 
     logger.info('Getting distances to city center (Marina Bay)')
-    dist_to_marina_bay = distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
+    dist_to_marina_bay = multiple_distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
     dist_to_marina_bay = pd.Series(dist_to_marina_bay, name='dist_to_marina_bay')
+    logger.info('\t\tCompleted')
 
     logger.info('Combining geolocation data to main')
     df = pd.concat([df, dist_to_marina_bay, geo_data_df['latitude'], geo_data_df['longitude'], geo_data_df['postal_code']], axis=1)
+    logger.info('\t\tCompleted')
     
     # Convert coordinates into numpy arrays
-    mrt_coordinates_dict = load_mrt_coordinates()
+    mrt_coordinates_dict = load_mrt_coordinates('static/mrt_dict.json')
     mrt_stations = np.array(list(mrt_coordinates_dict.keys()))
     mrt_coordinates = np.array(list(mrt_coordinates_dict.values()))
 
@@ -614,25 +622,24 @@ if __name__ ==  '__main__':
     nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
-    
+    logger.info('\t\tCompleted')
 
+    logger.info('Splitting data')
+    year_month = sorted(df['year_month'].unique())
+    logger.info('\t\tTime range found:')
+    logger.info(year_month)
 
-    ##### TO FIGURE OUT HOW TO CONTROL TIMESERIES DATA
     # Save data
-    csv_file = f'static/{str(datetime.year)}.csv'
+    csv_file = f'static/from_{year_month[0]}_to_{year_month[-1]}.csv'
     df.to_csv(csv_file)
-    logger.info(f'\nFull data saved as "{csv_file}" @ {datetime.now()}')
-    
-    
-    
-    # # Modify to look through the csv to append new rows not present
-    # READ CSV AND DEDUP
+    logger.info(f'\t\tFull data saved as "{csv_file}" @ {datetime.now()}')
 
     # Split out most recent month as Test data, the rest as training data
-    # test = df[df['month']==year_month[-1]] 
-    # train = df[df['month']!=year_month[-1]] 
+    test = df[df['year_month']==year_month[-1]] 
+    train = df[df['year_month']!=year_month[-1]] 
 
-    # train.to_csv(output_file_train)
-    # logger.info(f'Training data saved as {output_file_train} @ {datetime.now()}')
-    # test.to_csv(output_file_test)
-    # logger.info(f'Test data saved as {output_file_test} @ {datetime.now()}')
+    train.to_csv(output_file_train)
+    logger.info(f'\t\tTraining data saved as {output_file_train} @ {datetime.now()}')
+    test.to_csv(output_file_test)
+    logger.info(f'\t\tTest data saved as {output_file_test} @ {datetime.now()}')
+    

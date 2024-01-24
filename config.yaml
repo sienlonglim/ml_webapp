@@ -5,6 +5,7 @@
  use_datetime: False # For extracting from data.gov.sg (using latest data)
  years: # For extracting from data.gov.sg
    - 2023
+   - 2024
  months: # For extracting from data.gov.sg
    - 1
    - 2
@@ -20,6 +21,6 @@
    - 12
  train: 'static/train.csv'
  test: 'static/test.csv'
- model_version: '2023_12'
- save_model_version: '2023_12' # For saving built model
+ model_version: '2024_12'
+ save_model_version: '2024_12' # For saving built model
  automation: True # For recurrent runs at the end of each month
