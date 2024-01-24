@@ -544,7 +544,7 @@ if __name__ ==  '__main__':
         config = yaml.safe_load(file)
         
         # if config['automation'] & datetime.now().day != 30:
-        #     logger.info('Exiting ETL script - script will only run on 30th of each month')
+        #     etl_logger.info('Exiting ETL script - script will only run on 30th of each month')
         #     sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
@@ -568,48 +568,48 @@ if __name__ ==  '__main__':
             years = config['years']
             months = config['months']
 
-    # Get the correct logger
-    logger = logging.getLogger(__name__) #etl
+    # Get the correct etl_logger
+    etl_logger = logging.getLogger('etl')
 
-    logger.info(f"{'-'*50}New ETL run started {'-'*50}")
-    logger.info(f'Data extraction settings:')
-    logger.info(f'\tuse_curr_datetime: {use_curr_datetime}')
-    logger.info(f'\tyear(s): {years}')
-    logger.info(f'\tmonth(s): {months}')
+    etl_logger.info(f"{'-'*50}New ETL run started {'-'*50}")
+    etl_logger.info(f'Data extraction settings:')
+    etl_logger.info(f'\tuse_curr_datetime: {use_curr_datetime}')
+    etl_logger.info(f'\tyear(s): {years}')
+    etl_logger.info(f'\tmonth(s): {months}')
 
     # Enable caching
     session = requests_cache.CachedSession(cache_filepath, backend="sqlite")
 
     # There is now a limit to the API calls, so split to individual call for each month instead
     df = pd.DataFrame()
-    logger.info('Making API calls to data.gov.sg')
+    etl_logger.info('Making API calls to data.gov.sg')
     for year in years:
         for month in months:
             temp_df = datagovsg_api_call_v2(year=year, month=month)
-            logger.info(f'\tData df shape received: {temp_df.shape}')
+            etl_logger.info(f'\tData df shape received: {temp_df.shape}')
             if df.empty:
                 df = temp_df
             else:
                 df = pd.concat([df, temp_df])
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
 
     # Data transformation and geolocationing
-    logger.info('Cleaning data')
+    etl_logger.info('Cleaning data')
     df = clean_df(df)
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
 
-    logger.info('Getting geolocations')
+    etl_logger.info('Getting geolocations')
     geo_data_df= get_location_data(df[['address']], verbose=1, cached_session=session)
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
 
-    logger.info('Getting distances to city center (Marina Bay)')
+    etl_logger.info('Getting distances to city center (Marina Bay)')
     dist_to_marina_bay = multiple_distance_to(geo_data_df['numpy_array'], 'Marina Bay', dist_type='geodesic', verbose=1)
     dist_to_marina_bay = pd.Series(dist_to_marina_bay, name='dist_to_marina_bay')
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
 
-    logger.info('Combining geolocation data to main')
+    etl_logger.info('Combining geolocation data to main')
     df = pd.concat([df, dist_to_marina_bay, geo_data_df['latitude'], geo_data_df['longitude'], geo_data_df['postal_code']], axis=1)
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
     
     # Convert coordinates into numpy arrays
     mrt_coordinates_dict = load_mrt_coordinates('static/mrt_dict.json')
@@ -618,28 +618,28 @@ if __name__ ==  '__main__':
 
     n_nearest_stations = 1
     # Matrix operations to find nearest MRT stations for each row
-    logger.info(f'Finding nearest stations: n={n_nearest_stations}')
+    etl_logger.info(f'Finding nearest stations: n={n_nearest_stations}')
     nearest_stations = geo_data_df.apply(find_nearest_stations, mrt_stations= mrt_stations, mrt_coordinates=mrt_coordinates, n_nearest_stations=n_nearest_stations, axis=1, verbose=0)
     nearest_stations_df = pd.DataFrame(nearest_stations.tolist(), index=geo_data_df.index, columns=['nearest_station_'+ str(x) for x in range(n_nearest_stations)] + ['dist_to_station_'+ str(x) for x in range(n_nearest_stations)])
     df = pd.concat([df, nearest_stations_df], axis=1)
-    logger.info('\t\tCompleted')
+    etl_logger.info('\t\tCompleted')
 
-    logger.info('Splitting data')
+    etl_logger.info('Splitting data')
     year_month = sorted(df['year_month'].unique())
-    logger.info('\t\tTime range found:')
-    logger.info(year_month)
+    etl_logger.info('\t\tTime range found:')
+    etl_logger.info(year_month)
 
     # Save data
     csv_file = f'static/from_{year_month[0]}_to_{year_month[-1]}.csv'
     df.to_csv(csv_file)
-    logger.info(f'\t\tFull data saved as "{csv_file}" @ {datetime.now()}')
+    etl_logger.info(f'\t\tFull data saved as "{csv_file}" @ {datetime.now()}')
 
     # Split out most recent month as Test data, the rest as training data
     test = df[df['year_month']==year_month[-1]] 
     train = df[df['year_month']!=year_month[-1]] 
 
     train.to_csv(output_file_train)
-    logger.info(f'\t\tTraining data saved as {output_file_train} @ {datetime.now()}')
+    etl_logger.info(f'\t\tTraining data saved as {output_file_train} @ {datetime.now()}')
     test.to_csv(output_file_test)
-    logger.info(f'\t\tTest data saved as {output_file_test} @ {datetime.now()}')
+    etl_logger.info(f'\t\tTest data saved as {output_file_test} @ {datetime.now()}')
     
