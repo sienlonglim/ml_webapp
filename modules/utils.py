@@ -5,7 +5,11 @@ import json
 from requests.exceptions import HTTPError
 from functools import wraps
 
-def configure_logging(file_path=None, streaming=None, level=logging.INFO):
+logging.config.fileConfig(fname='logging_config.ini', disable_existing_loggers=False)
+logger = logging.getLogger('debugger')
+
+# Outdated function, use config file instead
+def add_custom_logger(file_path=None, streaming=None, level=logging.INFO):
     '''
     Initiates the logger
     '''
@@ -30,8 +34,6 @@ def configure_logging(file_path=None, streaming=None, level=logging.INFO):
 
     return logger
 
-logger = configure_logging('logs/app.log', streaming=True)
-
 # Wrapper for timing function calls:
 def timeit(func):
     '''
@@ -48,7 +50,7 @@ def timeit(func):
         result = func(*args, **kwargs)
         end = time.perf_counter()
         time_taken = end-start
-        logger.info(f'{func.__name__}() started at {current_time} \t ended at \texecution time: {time_taken:.4f} seconds')
+        logger.debug(f'{func.__name__}() started at {current_time} \t ended at \texecution time: {time_taken:.4f} seconds')
         return result
     return timeit_wrapper
 
@@ -73,9 +75,9 @@ def error_handler(func, max_attempts=3, delay=120):
 
                 # err.response gives us the Response object from requests module, we can call .status_code to get the code as int
                 if err.response.status_code == 429:
-                    logger.info(f'Sleeping for {delay} seconds', end = '\t')
+                    logger.error(f'Sleeping for {delay} seconds', end = '\t')
                     time.sleep(delay)
-                    logger.info('Retrying...', end='\t')
+                    logger.error('Retrying...', end='\t')
             except Exception as err:
                 logger.error(f'{func.__name__}() encountered {err}') 
                 break
