@@ -95,6 +95,9 @@ if __name__ ==  '__main__':
 
     # Saving
     model_logger.info('\nSaving...')
+    if not os.path.exists('models'):
+        os.makedirs('models')
+        model_logger.info('\tCould not find directory <models>, creating directory')
     model_logger.info(f"\tScaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
     model_logger.info(f"\tMean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
     model_logger.info(f"\tMean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")

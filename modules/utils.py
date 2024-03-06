@@ -9,12 +9,12 @@ logging.config.fileConfig(fname='logging_config.ini', disable_existing_loggers=F
 logger = logging.getLogger('debugger')
 
 # Outdated function, use config file instead
-def add_custom_logger(file_path=None, streaming=None, level=logging.INFO):
+def add_custom_logger(name, file_path=None, streaming=None, level=logging.INFO):
     '''
     Initiates the logger
     '''
 
-    logger = logging.getLogger()
+    logger = logging.getLogger(name)
     logger.setLevel(level)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     

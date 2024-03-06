@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, flash
-from modules.MeanEncoder import MeanEncoder
+# from modules.MeanEncoder import MeanEncoder
 from datetime import datetime
 from modules.utils import *
 from etl import single_distance_to
@@ -10,6 +10,8 @@ import yaml
 import os
 
 app = Flask(__name__)
+app_logger = logging.getLogger('root')
+
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
@@ -25,13 +27,13 @@ with open('config.yaml', 'r') as file:
     else:
         os.chdir(config['web_directory'])
 
-# Load the model, scaler and encoders
-prediction_model = joblib.load(f'models/gbc_{model_version}.joblib')            
-scaler = joblib.load(f'models/scaler_{model_version}.joblib') 
-mean_encoder = joblib.load(f'models/mean_encoder_{model_version}.joblib')
-# Alternative to pickling my own Class, set the encoder using a json
-# mean_encoder = MeanEncoder()
-# mean_encoder.set_from_json(f'models/encoding_dict_{model_version}.json') 
+    # Load the model, scaler and encoders
+    prediction_model = joblib.load(f'models/gbc_{model_version}.joblib')            
+    scaler = joblib.load(f'models/scaler_{model_version}.joblib') 
+    mean_encoder = joblib.load(f'models/mean_encoder_{model_version}.joblib')
+    # Alternative to pickling my own Class, set the encoder using a json
+    # mean_encoder = MeanEncoder()
+    # mean_encoder.set_from_json(f'models/encoding_dict_{model_version}.json') 
 
 # Flask Routing methods
 @app.route("/")
@@ -65,26 +67,27 @@ def predict():
 
         # Calculate distance to marina bay through OneMap API call
         try:
-            df['dist_to_marina_bay'] = single_distance_to(request.form['address'], 'Marina Bay', verbose=0)
+            df['dist_to_marina_bay'] = single_distance_to(request.form['address'], 'Marina Bay', verbose=1)
         except Exception as error:
-            logger.error(error, exc_info=True) 
+            app_logger.error(error, exc_info=True) 
             flash('Unable to get location of address given, please try again.')
             return render_template('predict.html') 
         
         # Mean encoding
         df['mean_encoded'] = mean_encoder.transform(for_mean_encoding)
-        logger.info(f'Prediction for\n{df}')
+        app_logger.info(f'Prediction for\n{df}')
         df = scaler.transform(df)
 
         # Prediction
         try:
             prediction = int(prediction_model.predict(df)[0])
-            logger.info(f'Prediction made at {datetime.now()}: {prediction}')
+            rounded_prediction = round(prediction, -3)
+            app_logger.info(f'Prediction made at {datetime.now()}: {rounded_prediction} ({prediction})')
         except ValueError as error:
-            logger.error(error, exc_info=True) 
+            app_logger.error(error, exc_info=True) 
             flash('No such type of flat found in Town specified, please try again.')
             return render_template('predict.html') 
-        return render_template('predict.html', prediction=prediction)
+        return render_template('predict.html', prediction=rounded_prediction)
     
     # GET request
     elif request.method == 'GET':

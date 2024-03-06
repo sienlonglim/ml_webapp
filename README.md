@@ -25,4 +25,11 @@ The following steps were taken in the project: (all steps can be found in the Ju
 
 ![snippet](https://github.com/sienlonglim/ml_webapp/assets/109359023/c7eea635-3944-4bc8-a361-eceea3492647)
 
+Updates:
+20240306
+- Completed refactoring of code to modules
+- Model and other objects are read once at the start of app startup, instead of every prediction
+- Rounded up predictions
+- Configured logging for individual modules
+
 
