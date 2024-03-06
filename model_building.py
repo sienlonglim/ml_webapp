@@ -3,7 +3,6 @@ This script build the model using the train and test data
 '''
 from modules.MeanEncoder import MeanEncoder
 from modules.utils import *
-import sys
 import os
 import yaml
 import numpy as np
@@ -23,7 +22,7 @@ if __name__ ==  '__main__':
         test = config["test"]
 
         # if config['automation'] & datetime.now().day != 30:
-        #     logger.info('Exiting Model Building script - script will only run on 30th of each month')
+        #     model_logger.info('Exiting Model Building script - script will only run on 30th of each month')
         #     sys.exit()
 
         # Accounts for filepathing local and in pythonanywhere
@@ -32,14 +31,16 @@ if __name__ ==  '__main__':
         else:
             os.chdir(config['web_directory'])
     
-    logger.info(f"{'-'*50}New Model building run started {'-'*50}")
-    logger.info(f'Data settings:')
-    logger.info(f'\ttrain: {train}')
-    logger.info(f'\ttest): {test}')
-    logger.info(f'\tmodel version): {model_version}')
+    # Get the correct etl_logger
+    model_logger = logging.getLogger('model')
+    model_logger.info(f"{'-'*50}New Model building run started {'-'*50}")
+    model_logger.info(f'Data settings:')
+    model_logger.info(f'\ttrain: {train}')
+    model_logger.info(f'\ttest: {test}')
+    model_logger.info(f'\tmodel version: {model_version}')
 
     # Loading training data
-    logger.info(f'Loading dataframe and generating features...')
+    model_logger.info(f'Loading dataframe and generating features...')
     df = pd.read_csv(train, index_col=0)
     df.dropna(inplace=True)
 
@@ -57,7 +58,7 @@ if __name__ ==  '__main__':
     X = scaler.fit_transform(X_unscaled)
 
     # Hyperparameter tuning
-    logger.info('Starting hyperparameter tuning...')
+    model_logger.info('Starting hyperparameter tuning...')
     param_distributions = {'max_depth' : [3,5],
                         'n_estimators' : [50,100,150],
                         'learning_rate' : [0.01,0.1,1],
@@ -73,8 +74,8 @@ if __name__ ==  '__main__':
                                 n_jobs=2)
 
     random_cv.fit(X, y)
-    logger.info('\tBest Parameters', random_cv.best_params_)
-    logger.info('\tValidation R2 score', np.round(random_cv.best_score_,3))
+    model_logger.info(f'\tBest Parameters: {random_cv.best_params_}')
+    model_logger.info(f'\t- Validation R2 score: {np.round(random_cv.best_score_,3)}')
     best_gbc = random_cv.best_estimator_
 
     # Test against latest data
@@ -88,14 +89,14 @@ if __name__ ==  '__main__':
     y_pred = best_gbc.predict(X_test)
     r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
-    logger.info(f'\tReported R2 score = {np.round(r2,3)}')
-    logger.info(f'\t Reported MAE = {int(mae)}')
+    model_logger.info(f'\t- Reported R2 score = {np.round(r2,3)}')
+    model_logger.info(f'\t- Reported MAE = {int(mae)}')
 
 
     # Saving
-    logger.info('\nSaving...')
-    logger.info(f"\tScaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
-    logger.info(f"\tMean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
-    logger.info(f"\tMean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
-    logger.info(f"\tML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
-    logger.info(f'\nAll jobs completed @ {datetime.now()}')
+    model_logger.info('\nSaving...')
+    model_logger.info(f"\tScaler object saved as {joblib.dump(scaler, f'models/scaler_{model_version}.joblib')}")
+    model_logger.info(f"\tMean encoder object as{joblib.dump(mean_encoder, f'models/mean_encoder_{model_version}.joblib')}")
+    model_logger.info(f"\tMean encoding Json exported as {mean_encoder.export_to_json(f'models/encoding_dict_{model_version}.json')}")
+    model_logger.info(f"\tML model saved as {joblib.dump(best_gbc, f'models/gbc_{model_version}.joblib')}")
+    model_logger.info(f'\nAll jobs completed @ {datetime.now()}')

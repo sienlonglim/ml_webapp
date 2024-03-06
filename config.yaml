@@ -21,6 +21,6 @@
    - 12
  train: 'static/train.csv'
  test: 'static/test.csv'
- model_version: '2024_12'
- save_model_version: '2024_12' # For saving built model
+ use_model_version: '2024_03' # Model to deploy in app
+ save_model_version: '2024_03' # For saving built model
  automation: True # For recurrent runs at the end of each month
