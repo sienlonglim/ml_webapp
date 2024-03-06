@@ -1,5 +1,5 @@
 ---
- local: True # Whether to run app.py locally or on pythonanywhere
+ local: False # Whether to run app.py locally or on pythonanywhere
  web_directory: /home/natuyuki/ml_webapp/
  local_cache_filepath: 'ignore/project_cache'
  use_datetime: False # For extracting from data.gov.sg (using latest data)
