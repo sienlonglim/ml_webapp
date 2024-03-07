@@ -2,6 +2,7 @@ import logging.config
 import time
 import sys
 import json
+import os
 from requests.exceptions import HTTPError
 from functools import wraps
 
@@ -33,6 +34,8 @@ def add_custom_logger(name, file_path=None, write_mode='a' , streaming=None, lev
 
     return logger
 
+# logger = add_custom_logger('debugger', file_path='logs/debugger.log', level=logging.DEBUG)
+print(os.listdir())
 logger = add_custom_logger('debugger', file_path='logs/debugger.log', level=logging.DEBUG)
 
 # Wrapper for timing function calls:
