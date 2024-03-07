@@ -5,11 +5,10 @@ import json
 from requests.exceptions import HTTPError
 from functools import wraps
 
-logging.config.fileConfig(fname='logging_config.ini', disable_existing_loggers=False)
-logger = logging.getLogger('debugger')
+# logging.config.fileConfig(fname='logging_config.ini', disable_existing_loggers=False)
+# logger = logging.getLogger('debugger')
 
-# Outdated function, use config file instead
-def add_custom_logger(name, file_path=None, streaming=None, level=logging.INFO):
+def add_custom_logger(name, file_path=None, write_mode='w' , streaming=None, level=logging.INFO):
     '''
     Initiates the logger
     '''
@@ -21,7 +20,7 @@ def add_custom_logger(name, file_path=None, streaming=None, level=logging.INFO):
     if not len(logger.handlers):
         # Add a filehandler to output to a file
         if file_path:
-            file_handler = logging.FileHandler(file_path, mode='w')
+            file_handler = logging.FileHandler(file_path, mode=write_mode)
             file_handler.setLevel(level)
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
@@ -33,6 +32,8 @@ def add_custom_logger(name, file_path=None, streaming=None, level=logging.INFO):
             logger.addHandler(stream_handler)    
 
     return logger
+
+logger = add_custom_logger('debugger', file_path='logs/debugger.log', level=logging.DEBUG)
 
 # Wrapper for timing function calls:
 def timeit(func):

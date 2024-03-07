@@ -10,7 +10,7 @@ import yaml
 import os
 
 app = Flask(__name__)
-app_logger = logging.getLogger('root')
+app_logger = add_custom_logger('app', file_path='logs/app.log', streaming=True)
 
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)

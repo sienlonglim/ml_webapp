@@ -569,7 +569,7 @@ if __name__ ==  '__main__':
             months = config['months']
 
     # Get the correct etl_logger
-    etl_logger = logging.getLogger('etl')
+    etl_logger = add_custom_logger('logs/etl', file_path='etl.log')
 
     etl_logger.info(f"{'-'*50}New ETL run started {'-'*50}")
     etl_logger.info(f'Data extraction settings:')

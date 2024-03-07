@@ -32,7 +32,8 @@ if __name__ ==  '__main__':
             os.chdir(config['web_directory'])
     
     # Get the correct etl_logger
-    model_logger = logging.getLogger('model')
+    model_logger = add_custom_logger('model', file_path='logs/model.log')
+    
     model_logger.info(f"{'-'*50}New Model building run started {'-'*50}")
     model_logger.info(f'Data settings:')
     model_logger.info(f'\ttrain: {train}')
