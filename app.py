@@ -28,9 +28,9 @@ with open('./config.yaml', 'r') as file:
         os.chdir(config['web_directory'])
 
     # Load the model, scaler and encoders
-    prediction_model = joblib.load(f'models/gbc_{model_version}.joblib')            
-    scaler = joblib.load(f'models/scaler_{model_version}.joblib') 
-    mean_encoder = joblib.load(f'models/mean_encoder_{model_version}.joblib')
+    prediction_model = joblib.load(f'./models/gbc_{model_version}.joblib')            
+    scaler = joblib.load(f'./models/scaler_{model_version}.joblib') 
+    mean_encoder = joblib.load(f'./models/mean_encoder_{model_version}.joblib')
     # Alternative to pickling my own Class, set the encoder using a json
     # mean_encoder = MeanEncoder()
     # mean_encoder.set_from_json(f'models/encoding_dict_{model_version}.json') 
