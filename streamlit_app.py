@@ -13,11 +13,15 @@ def load_data(url):
     df = pd.read_csv(url, index_col=0)
     return df
 
+# # Session state for aggregating
+# if 'enable_aggregate' not in st.session_state:
+#     st.session_state['enable_aggregate'] = True
+
 # Year scope to load df file
 st.sidebar.write("Select the scope of the data to begin")
 year_select = st.sidebar.selectbox(
     'Year',
-    (2023, 2022)
+    (2024, 2023, 2022)
 )
 
 df = load_data(f'static/{year_select}.csv')
