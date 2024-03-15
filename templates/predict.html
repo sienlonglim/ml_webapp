@@ -10,9 +10,7 @@ Sien Long's Data Science Web App
 <!--Main content-->
 {% block content %}
 <div class="container">
-  {% if prediction %}
-    <h2><strong>Predicted price:</strong> <br>SGD {{ prediction }}</p>
-  {% endif %}
+  <h3 id="predict_output"></h3>
   <h3>Fill in the info to do a prediction of current resale price</h3>
   
   {% set towns = ['Ang Mo Kio', 'Bedok', 'Bishan', 'Bukit Batok', 'Bukit Merah', 
@@ -22,23 +20,11 @@ Sien Long's Data Science Web App
       'Queenstown', 'Sembawang', 'Sengkang', 'Serangoon', 'Tampines',
       'Toa Payoh', 'Woodlands', 'Yishun'] -%}
 
-  <form method="post">
+  <form id="predict_input" method="post">
     <!--Row 1-->
     <div class="row">
       <div class="col-lg-2 mb-3"></div>
       <div class="col-sm mb-3">
-        <!--Flashed messages-->
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="py-3 my-2 bg-dark text-white" role="alert">
-            
-          {% for message in messages %}
-            {{ message }}
-          {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-
         <label for="town" class="form-label">Town</label>
           <select class="form-select" name="town" aria-label=".form-select example" required>
             {% for town in towns %}
@@ -126,5 +112,56 @@ Sien Long's Data Science Web App
         <button type="submit" class="btn btn-lg btn-light fw-bold">Submit</button>
       </div>
   </form>
+
+  <script>
+    const form = document.querySelector("#predict_input");
+
+    async function sendData() {
+      const formData = new FormData(form); // Associate the FormData object with the form element
+
+      try {
+          const response = await fetch("http://natuyuki.pythonanywhere.com/predict", { //"http://127.0.0.1:5000/predict" if local
+            method: "POST",
+            body: formData, // Set the FormData instance as the request body
+            }).then(response => response.json()) 
+              .then(data => {    
+                var container = document.getElementById('predict_output');
+                container.innerHTML = '';
+                
+                if (data.error_msg == null){
+                  // Create the Predicted Price title
+                  var strong = document.createElement('strong');
+                  strong.textContent = 'Predicted Price';
+                  container.appendChild(strong);
+                  container.appendChild(document.createElement('br')); // line break
+
+                  // Get the predicted output
+                  container.appendChild(document.createTextNode('SGD '));
+                  var span = document.createElement('span');
+                  span.textContent = data.rounded_prediction;
+                  container.appendChild(span);
+                }
+                else {
+                  var strong = document.createElement('strong');
+                  strong.textContent = data.error_msg;
+                  container.appendChild(strong);
+                }
+              })
+      } 
+      catch (e) {
+        console.error('Error fetching JSON', e);        
+      }
+    }
+
+    // Take over form submission
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      sendData();
+    });
+
+    ; 
+
+  </script>
+
   </div>
 {% endblock %}

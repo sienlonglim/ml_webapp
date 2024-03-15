@@ -52,8 +52,9 @@ def model():
 @app.route('/predict', methods=('GET', 'POST'))
 @timeit
 def predict():
-    prediction=None
     if request.method == 'POST':
+        payload = {'error_msg': None}
+
         # Build a Pandas DataFrame using the post info
         data = {'floor_area_sqm': float(request.form['floor_area_sqm']),
                 'remaining_lease':float(request.form['remaining_lease']),
@@ -70,8 +71,8 @@ def predict():
             df['dist_to_marina_bay'] = single_distance_to(request.form['address'], 'Marina Bay', verbose=1)
         except Exception as error:
             app_logger.error(error, exc_info=True) 
-            flash('Unable to get location of address given, please try again.')
-            return render_template('predict.html') 
+            payload['error_msg'] = 'Invalid address'
+            return json.dumps(payload)
         
         # Mean encoding
         df['mean_encoded'] = mean_encoder.transform(for_mean_encoding)
@@ -80,18 +81,18 @@ def predict():
 
         # Prediction
         try:
-            prediction = int(prediction_model.predict(df)[0])
-            rounded_prediction = round(prediction, -3)
-            app_logger.info(f'Prediction made at {datetime.now()}: {rounded_prediction} ({prediction})')
+            payload['prediction']  = int(prediction_model.predict(df)[0])
+            payload['rounded_prediction']  = round(payload['prediction'], -3)
+            app_logger.info(f"Prediction made at {datetime.now()}: {payload['rounded_prediction']} ({payload['prediction']})")
         except ValueError as error:
             app_logger.error(error, exc_info=True) 
-            flash('No such type of flat found in Town specified, please try again.')
-            return render_template('predict.html') 
-        return render_template('predict.html', prediction=rounded_prediction)
+            payload['error_msg'] = 'Prediction error, please try again'
+            return json.dumps(payload)
+        return json.dumps(payload)
     
     # GET request
     elif request.method == 'GET':
-        return render_template('predict.html', prediction=prediction)
+        return render_template('predict.html')
 
 
 # Main()
