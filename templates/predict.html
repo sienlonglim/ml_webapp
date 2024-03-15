@@ -120,7 +120,7 @@ Sien Long's Data Science Web App
       const formData = new FormData(form); // Associate the FormData object with the form element
 
       try {
-          const response = await fetch("http://natuyuki.pythonanywhere.com/predict", { //"http://127.0.0.1:5000/predict" if local
+          const response = await fetch("https://natuyuki.pythonanywhere.com/predict", { //"http://127.0.0.1:5000/predict" if local
             method: "POST",
             body: formData, // Set the FormData instance as the request body
             }).then(response => response.json()) 
